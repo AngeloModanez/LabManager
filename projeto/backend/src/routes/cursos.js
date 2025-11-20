@@ -17,6 +17,7 @@ const router = express.Router();
  *       required:
  *         - nome
  *         - instituicaoId
+ *         - turnos
  *       properties:
  *         nome:
  *           type: string
@@ -29,7 +30,16 @@ const router = express.Router();
  *         instituicaoId:
  *           type: string
  *           description: ID da instituição
- *           example: "507f1f77bcf86cd799439011"
+ *         turnos:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [manha, tarde, noite]
+ *           description: Turnos do curso
+ *         ativo:
+ *           type: boolean
+ *           description: Status ativo/inativo
+ *           default: true
  *     CursoResponse:
  *       allOf:
  *         - $ref: '#/components/schemas/Curso'
@@ -68,7 +78,8 @@ const router = express.Router();
  *           example:
  *             nome: "Engenharia de Software"
  *             codigo: "ES001"
- *             instituicaoId: "507f1f77bcf86cd799439011"
+ *             turnos: ["manha", "tarde"]
+ *             instituicaoId: "60d5ecb74b24a1234567890a"
  *     responses:
  *       201:
  *         description: Curso criado com sucesso
@@ -94,7 +105,6 @@ const router = express.Router();
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Já existe um curso com este nome nesta instituição"
  */
 router.post('/', criarCurso);
 
@@ -110,13 +120,16 @@ router.post('/', criarCurso);
  *         schema:
  *           type: string
  *         description: Filtrar por ID da instituição
- *         example: "507f1f77bcf86cd799439011"
  *       - in: query
  *         name: nome
  *         schema:
  *           type: string
  *         description: Filtrar por nome (contém, case-insensitive)
- *         example: "engenharia"
+ *       - in: query
+ *         name: ativo
+ *         schema:
+ *           type: boolean
+ *         description: Filtrar por status ativo
  *       - in: query
  *         name: page
  *         schema:
@@ -163,7 +176,6 @@ router.get('/', listarCursos);
  *         schema:
  *           type: string
  *         description: ID do curso
- *         example: "507f1f77bcf86cd799439011"
  *     requestBody:
  *       required: true
  *       content:
@@ -172,7 +184,8 @@ router.get('/', listarCursos);
  *             $ref: '#/components/schemas/Curso'
  *           example:
  *             nome: "Engenharia de Software Atualizado"
- *             codigo: "ES002"
+ *             turnos: ["noite"]
+ *             ativo: false
  *     responses:
  *       200:
  *         description: Curso atualizado com sucesso
@@ -189,7 +202,6 @@ router.get('/', listarCursos);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Curso não encontrado"
  *       409:
  *         description: Nome já existe nesta instituição
  *         content:
@@ -215,7 +227,6 @@ router.put('/:id', atualizarCurso);
  *         schema:
  *           type: string
  *         description: ID do curso
- *         example: "507f1f77bcf86cd799439011"
  *     responses:
  *       204:
  *         description: Curso removido com sucesso
@@ -228,7 +239,6 @@ router.put('/:id', atualizarCurso);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Curso não encontrado"
  */
 router.delete('/:id', removerCurso);
 

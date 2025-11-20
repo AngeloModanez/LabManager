@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
  * @property {string} nome - Nome do curso
  * @property {string} [codigo] - Código do curso
  * @property {ObjectId} instituicaoId - ID da instituição
+ * @property {string[]} turnos - Turnos do curso (manhã, tarde, noite)
+ * @property {boolean} [ativo] - Status ativo/inativo do curso
  * @property {Date} createdAt - Data de criação
  * @property {Date} updatedAt - Data de atualização
  */
@@ -29,6 +31,24 @@ const cursoSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Instituicao',
     required: [true, 'Instituição é obrigatória']
+  },
+  turnos: {
+    type: [String],
+    required: [true, 'Pelo menos um turno é obrigatório'],
+    enum: {
+      values: ['manha', 'tarde', 'noite'],
+      message: 'Turno deve ser: manha, tarde ou noite'
+    },
+    validate: {
+      validator: function(v) {
+        return v && v.length > 0;
+      },
+      message: 'Pelo menos um turno deve ser selecionado'
+    }
+  },
+  ativo: {
+    type: Boolean,
+    default: true
   }
 }, {
   timestamps: true,

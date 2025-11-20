@@ -16,11 +16,15 @@ const router = express.Router();
  *       type: object
  *       required:
  *         - nome
+ *         - sigla
  *         - cnpj
  *       properties:
  *         nome:
  *           type: string
  *           description: Nome da instituição
+ *         sigla:
+ *           type: string
+ *           description: Sigla da instituição
  *         cnpj:
  *           type: string
  *           description: CNPJ da instituição

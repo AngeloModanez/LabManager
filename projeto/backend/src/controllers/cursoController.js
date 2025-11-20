@@ -34,7 +34,7 @@ const criarCurso = async (req, res, next) => {
  */
 const listarCursos = async (req, res, next) => {
   try {
-    const { instituicaoId, nome, page = 1, limit = 20 } = req.query;
+    const { instituicaoId, nome, ativo, page = 1, limit = 20 } = req.query;
     const filter = {};
 
     if (instituicaoId) {
@@ -48,6 +48,10 @@ const listarCursos = async (req, res, next) => {
 
     if (nome) {
       filter.nome = { $regex: nome, $options: 'i' };
+    }
+
+    if (ativo !== undefined) {
+      filter.ativo = ativo === 'true';
     }
 
     const skip = (page - 1) * limit;
