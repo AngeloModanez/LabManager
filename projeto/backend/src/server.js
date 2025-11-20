@@ -4,14 +4,15 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 
 // Configurações
-const config = require('./src/config/configurationLoader');
-const { connectDatabase } = require('./src/config/database');
-const { createHttpsServer } = require('./src/config/httpsConfig');
-const { setupSwagger } = require('./src/config/swagger');
-const errorHandler = require('./src/middleware/errorHandler');
+const config = require('./config/configurationLoader');
+const { connectDatabase } = require('./config/database');
+const { createHttpsServer } = require('./config/httpsConfig');
+const { setupSwagger } = require('./config/swagger');
+const errorHandler = require('./middleware/errorHandler');
 
 // Rotas
-const instituicoesRoutes = require('./src/routes/instituicoes');
+const instituicoesRoutes = require('./routes/instituicoes');
+const cursosRoutes = require('./routes/cursos');
 
 /**
  * Aplicação Express principal
@@ -40,6 +41,7 @@ setupSwagger(app);
 
 // Rotas da API
 app.use('/api/v1/instituicoes', instituicoesRoutes);
+app.use('/api/v1/cursos', cursosRoutes);
 
 // Rota de teste
 app.get('/', (req, res) => {
