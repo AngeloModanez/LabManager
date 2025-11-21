@@ -22,11 +22,11 @@ const router = express.Router();
  *         nome:
  *           type: string
  *           description: Nome do curso
- *           example: "Engenharia de Software"
+ *           example: "Análise e Desenvolvimento de Sistemas"
  *         codigo:
  *           type: string
  *           description: Código do curso
- *           example: "ES001"
+ *           example: "ADS"
  *         instituicaoId:
  *           type: string
  *           description: ID da instituição
@@ -76,10 +76,11 @@ const router = express.Router();
  *           schema:
  *             $ref: '#/components/schemas/Curso'
  *           example:
- *             nome: "Engenharia de Software"
- *             codigo: "ES001"
+ *             nome: "Análise e Desenvolvimento de Sistemas"
+ *             codigo: "ADS"
  *             turnos: ["manha", "tarde"]
- *             instituicaoId: "60d5ecb74b24a1234567890a"
+ *             instituicaoId: ""
+ *             ativo: true
  *     responses:
  *       201:
  *         description: Curso criado com sucesso
