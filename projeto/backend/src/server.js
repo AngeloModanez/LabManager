@@ -13,6 +13,7 @@ const errorHandler = require('./middleware/errorHandler');
 // Rotas
 const instituicoesRoutes = require('./routes/instituicoes');
 const cursosRoutes = require('./routes/cursos');
+const blocosRoutes = require('./routes/blocoRoutes');
 
 /**
  * Aplicação Express principal
@@ -42,6 +43,7 @@ setupSwagger(app);
 // Rotas da API
 app.use('/api/v1/instituicoes', instituicoesRoutes);
 app.use('/api/v1/cursos', cursosRoutes);
+app.use('/api/v1/blocos', blocosRoutes);
 
 // Rota de teste
 app.get('/', (req, res) => {

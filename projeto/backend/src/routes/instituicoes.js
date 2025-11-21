@@ -55,6 +55,14 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Instituicao'
+ *           example:
+ *             nome: "Faculdade de Tecnologia Dom Amaury Castanho"
+ *             sigla: "FATEC ITU"
+ *             cnpj: "12.345.678/0001-90"
+ *             email: "contato@fatecitu.edu.br"
+ *             telefone: "(11) 4013-1872"
+ *             endereco: "Av. Tiradentes, 1211 - Vila Esperança, Itu - SP"
+ *             ativo: true
  *     responses:
  *       201:
  *         description: Instituição criada com sucesso
