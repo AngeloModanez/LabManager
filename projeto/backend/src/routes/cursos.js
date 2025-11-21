@@ -40,27 +40,6 @@ const router = express.Router();
  *           type: boolean
  *           description: Status ativo/inativo
  *           default: true
- *     CursoResponse:
- *       allOf:
- *         - $ref: '#/components/schemas/Curso'
- *         - type: object
- *           properties:
- *             _id:
- *               type: string
- *               description: ID do curso
- *             createdAt:
- *               type: string
- *               format: date-time
- *             updatedAt:
- *               type: string
- *               format: date-time
- *             instituicaoId:
- *               type: object
- *               properties:
- *                 _id:
- *                   type: string
- *                 nome:
- *                   type: string
  */
 
 /**
@@ -87,7 +66,7 @@ const router = express.Router();
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/CursoResponse'
+ *               $ref: '#/components/schemas/Curso'
  *       400:
  *         description: Dados inválidos
  *         content:
@@ -151,7 +130,7 @@ router.post('/', criarCurso);
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/CursoResponse'
+ *                 $ref: '#/components/schemas/Curso'
  *       400:
  *         description: Parâmetros inválidos
  *         content:
@@ -193,7 +172,7 @@ router.get('/', listarCursos);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/CursoResponse'
+ *               $ref: '#/components/schemas/Curso'
  *       404:
  *         description: Curso não encontrado
  *         content:
