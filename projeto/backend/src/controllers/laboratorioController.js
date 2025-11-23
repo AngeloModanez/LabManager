@@ -1,4 +1,5 @@
 const Laboratorio = require('../models/Laboratorio');
+const { successResponse, successResponseWithPagination, notFoundResponse } = require('../utils/responseHelper');
 
 /**
  * Controller para operações CRUD de laboratórios
@@ -14,7 +15,7 @@ const Laboratorio = require('../models/Laboratorio');
 const criarLaboratorio = async (req, res, next) => {
   try {
     const laboratorio = await Laboratorio.create(req.body);
-    res.status(201).json(laboratorio);
+    successResponse(res, laboratorio, 'Laboratório criado com sucesso', 201);
   } catch (error) {
     next(error);
   }
@@ -49,7 +50,15 @@ const listarLaboratorios = async (req, res, next) => {
       .limit(parseInt(limit))
       .sort({ nome: 1 });
 
-    res.json(laboratorios);
+    const total = await Laboratorio.countDocuments(filter);
+    const pagination = {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / limit)
+    };
+    
+    successResponseWithPagination(res, laboratorios, pagination);
   } catch (error) {
     next(error);
   }
@@ -70,12 +79,67 @@ const atualizarLaboratorio = async (req, res, next) => {
     );
 
     if (!laboratorio) {
+      return notFoundResponse(res, 'Laboratório');
+    }
+
+    successResponse(res, laboratorio, 'Laboratório atualizado com sucesso');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Busca um laboratório por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const buscarLaboratorioPorId = async (req, res, next) => {
+  try {
+    const laboratorio = await Laboratorio.findById(req.params.id);
+
+    if (!laboratorio) {
       return res.status(404).json({
+        success: false,
         message: 'Laboratório não encontrado'
       });
     }
 
-    res.json(laboratorio);
+    res.json({
+      success: true,
+      data: laboratorio
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Atualização parcial de um laboratório por ID (PATCH)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const atualizarLaboratorioParcial = async (req, res, next) => {
+  try {
+    const laboratorio = await Laboratorio.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!laboratorio) {
+      return res.status(404).json({
+        success: false,
+        message: 'Laboratório não encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: laboratorio,
+      message: 'Laboratório atualizado com sucesso'
+    });
   } catch (error) {
     next(error);
   }
@@ -93,6 +157,7 @@ const removerLaboratorio = async (req, res, next) => {
 
     if (!laboratorio) {
       return res.status(404).json({
+        success: false,
         message: 'Laboratório não encontrado'
       });
     }
@@ -106,6 +171,8 @@ const removerLaboratorio = async (req, res, next) => {
 module.exports = {
   criarLaboratorio,
   listarLaboratorios,
+  buscarLaboratorioPorId,
   atualizarLaboratorio,
+  atualizarLaboratorioParcial,
   removerLaboratorio
 };

@@ -1,4 +1,5 @@
 const Bloco = require('../models/Bloco');
+const { successResponse, successResponseWithPagination, notFoundResponse } = require('../utils/responseHelper');
 
 /**
  * Controller para operações CRUD de blocos de horário
@@ -14,7 +15,7 @@ const Bloco = require('../models/Bloco');
 const criarBloco = async (req, res, next) => {
   try {
     const bloco = await Bloco.create(req.body);
-    res.status(201).json(bloco);
+    successResponse(res, bloco, 'Bloco criado com sucesso', 201);
   } catch (error) {
     next(error);
   }
@@ -49,7 +50,15 @@ const listarBlocos = async (req, res, next) => {
       .limit(parseInt(limit))
       .sort({ turno: 1, dia_da_semana: 1, ordem: 1 });
 
-    res.json(blocos);
+    const total = await Bloco.countDocuments(filter);
+    const pagination = {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / limit)
+    };
+    
+    successResponseWithPagination(res, blocos, pagination);
   } catch (error) {
     next(error);
   }
@@ -70,12 +79,67 @@ const atualizarBloco = async (req, res, next) => {
     );
 
     if (!bloco) {
+      return notFoundResponse(res, 'Bloco');
+    }
+
+    successResponse(res, bloco, 'Bloco atualizado com sucesso');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Busca um bloco por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const buscarBlocoPorId = async (req, res, next) => {
+  try {
+    const bloco = await Bloco.findById(req.params.id);
+
+    if (!bloco) {
       return res.status(404).json({
+        success: false,
         message: 'Bloco não encontrado'
       });
     }
 
-    res.json(bloco);
+    res.json({
+      success: true,
+      data: bloco
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Atualização parcial de um bloco por ID (PATCH)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const atualizarBlocoParcial = async (req, res, next) => {
+  try {
+    const bloco = await Bloco.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!bloco) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bloco não encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: bloco,
+      message: 'Bloco atualizado com sucesso'
+    });
   } catch (error) {
     next(error);
   }
@@ -93,6 +157,7 @@ const removerBloco = async (req, res, next) => {
 
     if (!bloco) {
       return res.status(404).json({
+        success: false,
         message: 'Bloco não encontrado'
       });
     }
@@ -106,6 +171,8 @@ const removerBloco = async (req, res, next) => {
 module.exports = {
   criarBloco,
   listarBlocos,
+  buscarBlocoPorId,
   atualizarBloco,
+  atualizarBlocoParcial,
   removerBloco
 };

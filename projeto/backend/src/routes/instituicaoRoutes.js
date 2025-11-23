@@ -2,7 +2,9 @@ const express = require('express');
 const {
   criarInstituicao,
   listarInstituicoes,
+  buscarInstituicaoPorId,
   atualizarInstituicao,
+  atualizarInstituicaoParcial,
   removerInstituicao
 } = require('../controllers/instituicaoController');
 
@@ -109,6 +111,27 @@ router.get('/', listarInstituicoes);
 /**
  * @swagger
  * /api/v1/instituicoes/{id}:
+ *   get:
+ *     summary: Busca uma instituição por ID
+ *     tags: [Instituições]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da instituição
+ *     responses:
+ *       200:
+ *         description: Instituição encontrada
+ *       404:
+ *         description: Instituição não encontrada
+ */
+router.get('/:id', buscarInstituicaoPorId);
+
+/**
+ * @swagger
+ * /api/v1/instituicoes/{id}:
  *   put:
  *     summary: Atualiza uma instituição
  *     tags: [Instituições]
@@ -132,6 +155,53 @@ router.get('/', listarInstituicoes);
  *         description: Instituição não encontrada
  */
 router.put('/:id', atualizarInstituicao);
+
+/**
+ * @swagger
+ * /api/v1/instituicoes/{id}:
+ *   patch:
+ *     summary: Atualização parcial de uma instituição
+ *     tags: [Instituições]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da instituição
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               sigla:
+ *                 type: string
+ *               cnpj:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               telefone:
+ *                 type: string
+ *               endereco:
+ *                 type: string
+ *               ativo:
+ *                 type: boolean
+ *           example:
+ *             nome: "Faculdade Atualizada"
+ *             email: "email.example@email.com"
+ *             telefone: "(99) 99999-9999"
+ *             ativo: false
+ *     responses:
+ *       200:
+ *         description: Instituição atualizada com sucesso
+ *       404:
+ *         description: Instituição não encontrada
+ */
+router.patch('/:id', atualizarInstituicaoParcial);
 
 /**
  * @swagger

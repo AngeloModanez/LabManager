@@ -2,7 +2,9 @@ const express = require('express');
 const {
   criarCurso,
   listarCursos,
+  buscarCursoPorId,
   atualizarCurso,
+  atualizarCursoParcial,
   removerCurso
 } = require('../controllers/cursoController');
 
@@ -34,7 +36,7 @@ const router = express.Router();
  *           type: array
  *           items:
  *             type: string
- *             enum: [manha, tarde, noite]
+ *             enum: [manhã, tarde, noite]
  *           description: Turnos do curso
  *         ativo:
  *           type: boolean
@@ -57,7 +59,7 @@ const router = express.Router();
  *           example:
  *             nome: "Análise e Desenvolvimento de Sistemas"
  *             codigo: "ADS"
- *             turnos: ["manha", "tarde"]
+ *             turnos: ["manhã", "tarde"]
  *             instituicaoId: ""
  *             ativo: true
  *     responses:
@@ -146,6 +148,27 @@ router.get('/', listarCursos);
 /**
  * @swagger
  * /api/v1/cursos/{id}:
+ *   get:
+ *     summary: Busca um curso por ID
+ *     tags: [Cursos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do curso
+ *     responses:
+ *       200:
+ *         description: Curso encontrado
+ *       404:
+ *         description: Curso não encontrado
+ */
+router.get('/:id', buscarCursoPorId);
+
+/**
+ * @swagger
+ * /api/v1/cursos/{id}:
  *   put:
  *     summary: Atualiza um curso
  *     tags: [Cursos]
@@ -164,7 +187,7 @@ router.get('/', listarCursos);
  *             $ref: '#/components/schemas/Curso'
  *           example:
  *             nome: "Engenharia de Software Atualizado"
- *             turnos: ["noite"]
+ *             turnos: ["manhã", "noite"]
  *             ativo: false
  *     responses:
  *       200:
@@ -193,6 +216,49 @@ router.get('/', listarCursos);
  *                   type: string
  */
 router.put('/:id', atualizarCurso);
+
+/**
+ * @swagger
+ * /api/v1/cursos/{id}:
+ *   patch:
+ *     summary: Atualização parcial de um curso
+ *     tags: [Cursos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do curso
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               codigo:
+ *                 type: string
+ *               turnos:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [manhã, tarde, noite]
+ *               ativo:
+ *                 type: boolean
+ *           example:
+ *             nome: "Curso Atualizado"
+ *             turnos: ["noite"]
+ *             ativo: false
+ *     responses:
+ *       200:
+ *         description: Curso atualizado com sucesso
+ *       404:
+ *         description: Curso não encontrado
+ */
+router.patch('/:id', atualizarCursoParcial);
 
 /**
  * @swagger
