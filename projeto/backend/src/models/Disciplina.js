@@ -46,8 +46,7 @@ const disciplinaSchema = new mongoose.Schema({
   },
   professorId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Professor',
-    required: [true, 'Professor responsável é obrigatório']
+    ref: 'Professor'
   },
   status: {
     type: Boolean,

@@ -2,6 +2,7 @@ const express = require('express');
 const {
   criarInstituicao,
   listarInstituicoes,
+  buscarInstituicaoPorId,
   atualizarInstituicao,
   removerInstituicao
 } = require('../controllers/instituicaoController');
@@ -105,6 +106,27 @@ router.post('/', criarInstituicao);
  *         description: Lista de instituições
  */
 router.get('/', listarInstituicoes);
+
+/**
+ * @swagger
+ * /api/v1/instituicoes/{id}:
+ *   get:
+ *     summary: Busca uma instituição por ID
+ *     tags: [Instituições]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da instituição
+ *     responses:
+ *       200:
+ *         description: Instituição encontrada
+ *       404:
+ *         description: Instituição não encontrada
+ */
+router.get('/:id', buscarInstituicaoPorId);
 
 /**
  * @swagger

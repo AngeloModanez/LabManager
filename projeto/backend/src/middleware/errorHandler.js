@@ -21,28 +21,40 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === 'ValidationError') {
     const message = Object.values(err.errors).map(val => val.message).join(', ');
     return res.status(400).json({
-      message: `Erro de validação: ${message}`
+      success: false,
+      message: `Erro de validação: ${message}`,
+      details: err.errors
     });
   }
 
-  // Erro de duplicação (CNPJ duplicado)
+  // Erro de duplicação
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue)[0];
-    const message = `${field === 'cnpj' ? 'CNPJ' : field} já está em uso`;
+    const fieldNames = {
+      cnpj: 'CNPJ',
+      email: 'Email',
+      nome: 'Nome'
+    };
+    const message = `${fieldNames[field] || field} já está em uso`;
     return res.status(409).json({
-      message
+      success: false,
+      message,
+      details: { field, value: err.keyValue[field] }
     });
   }
 
   // Erro de ObjectId inválido
   if (err.name === 'CastError') {
     return res.status(400).json({
-      message: 'ID inválido'
+      success: false,
+      message: 'ID inválido',
+      details: { field: err.path, value: err.value }
     });
   }
 
   // Erro padrão
   res.status(error.statusCode || 500).json({
+    success: false,
     message: error.message || 'Erro interno do servidor'
   });
 };

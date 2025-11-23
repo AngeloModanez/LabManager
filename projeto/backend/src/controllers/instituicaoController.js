@@ -78,6 +78,28 @@ const atualizarInstituicao = async (req, res, next) => {
 };
 
 /**
+ * Busca uma instituição por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const buscarInstituicaoPorId = async (req, res, next) => {
+  try {
+    const instituicao = await Instituicao.findById(req.params.id);
+
+    if (!instituicao) {
+      return res.status(404).json({
+        message: 'Instituição não encontrada'
+      });
+    }
+
+    res.json(instituicao);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Remove uma instituição por ID
  * @param {Object} req - Request object
  * @param {Object} res - Response object
@@ -85,6 +107,16 @@ const atualizarInstituicao = async (req, res, next) => {
  */
 const removerInstituicao = async (req, res, next) => {
   try {
+    // Verificar se há cursos vinculados
+    const Curso = require('../models/Curso');
+    const cursosVinculados = await Curso.countDocuments({ instituicaoId: req.params.id });
+    
+    if (cursosVinculados > 0) {
+      return res.status(400).json({
+        message: 'Não é possível excluir instituição com cursos vinculados'
+      });
+    }
+
     const instituicao = await Instituicao.findByIdAndDelete(req.params.id);
 
     if (!instituicao) {
@@ -102,6 +134,7 @@ const removerInstituicao = async (req, res, next) => {
 module.exports = {
   criarInstituicao,
   listarInstituicoes,
+  buscarInstituicaoPorId,
   atualizarInstituicao,
   removerInstituicao
 };
