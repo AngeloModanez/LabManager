@@ -100,6 +100,37 @@ const buscarInstituicaoPorId = async (req, res, next) => {
 };
 
 /**
+ * Atualização parcial de uma instituição por ID (PATCH)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const atualizarInstituicaoParcial = async (req, res, next) => {
+  try {
+    const instituicao = await Instituicao.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!instituicao) {
+      return res.status(404).json({
+        success: false,
+        message: 'Instituição não encontrada'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: instituicao,
+      message: 'Instituição atualizada com sucesso'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Remove uma instituição por ID
  * @param {Object} req - Request object
  * @param {Object} res - Response object
@@ -136,5 +167,6 @@ module.exports = {
   listarInstituicoes,
   buscarInstituicaoPorId,
   atualizarInstituicao,
+  atualizarInstituicaoParcial,
   removerInstituicao
 };

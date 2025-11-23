@@ -2,7 +2,9 @@ const express = require('express');
 const {
   criarDisciplina,
   listarDisciplinas,
+  buscarDisciplinaPorId,
   atualizarDisciplina,
+  atualizarDisciplinaParcial,
   removerDisciplina
 } = require('../controllers/disciplinaController');
 
@@ -117,6 +119,36 @@ router.get('/', listarDisciplinas);
 /**
  * @swagger
  * /api/v1/disciplinas/{id}:
+ *   get:
+ *     summary: Busca uma disciplina por ID
+ *     tags: [Disciplinas]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da disciplina
+ *     responses:
+ *       200:
+ *         description: Disciplina encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Disciplina'
+ *       404:
+ *         description: Disciplina não encontrada
+ */
+router.get('/:id', buscarDisciplinaPorId);
+
+/**
+ * @swagger
+ * /api/v1/disciplinas/{id}:
  *   put:
  *     summary: Atualiza uma disciplina
  *     tags: [Disciplinas]
@@ -142,6 +174,47 @@ router.get('/', listarDisciplinas);
  *         description: Nome já existe no curso
  */
 router.put('/:id', atualizarDisciplina);
+
+/**
+ * @swagger
+ * /api/v1/disciplinas/{id}:
+ *   patch:
+ *     summary: Atualização parcial de uma disciplina
+ *     tags: [Disciplinas]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da disciplina
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               cursoId:
+ *                 type: string
+ *               cargaHoraria:
+ *                 type: integer
+ *               professorId:
+ *                 type: string
+ *               status:
+ *                 type: boolean
+ *           example:
+ *             cargaHoraria: 60
+ *             status: false
+ *     responses:
+ *       200:
+ *         description: Disciplina atualizada com sucesso
+ *       404:
+ *         description: Disciplina não encontrada
+ */
+router.patch('/:id', atualizarDisciplinaParcial);
 
 /**
  * @swagger

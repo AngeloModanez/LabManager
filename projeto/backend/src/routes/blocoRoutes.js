@@ -2,7 +2,9 @@ const express = require('express');
 const {
   criarBloco,
   listarBlocos,
+  buscarBlocoPorId,
   atualizarBloco,
+  atualizarBlocoParcial,
   removerBloco
 } = require('../controllers/blocoController');
 
@@ -121,6 +123,36 @@ router.get('/', listarBlocos);
 /**
  * @swagger
  * /api/v1/blocos/{id}:
+ *   get:
+ *     summary: Busca um bloco por ID
+ *     tags: [Blocos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do bloco
+ *     responses:
+ *       200:
+ *         description: Bloco encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Bloco'
+ *       404:
+ *         description: Bloco não encontrado
+ */
+router.get('/:id', buscarBlocoPorId);
+
+/**
+ * @swagger
+ * /api/v1/blocos/{id}:
  *   put:
  *     summary: Atualiza um bloco de horário
  *     tags: [Blocos]
@@ -148,6 +180,51 @@ router.get('/', listarBlocos);
  *         description: Conflito de unicidade ou sobreposição
  */
 router.put('/:id', atualizarBloco);
+
+/**
+ * @swagger
+ * /api/v1/blocos/{id}:
+ *   patch:
+ *     summary: Atualização parcial de um bloco
+ *     tags: [Blocos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do bloco
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               turno:
+ *                 type: string
+ *                 enum: [manhã, tarde, noite]
+ *               dia_da_semana:
+ *                 type: string
+ *                 enum: [segunda, terça, quarta, quinta, sexta, sábado]
+ *               inicio:
+ *                 type: string
+ *               fim:
+ *                 type: string
+ *               ordem:
+ *                 type: number
+ *               status:
+ *                 type: boolean
+ *           example:
+ *             inicio: "14:00"
+ *             fim: "14:50"
+ *     responses:
+ *       200:
+ *         description: Bloco atualizado com sucesso
+ *       404:
+ *         description: Bloco não encontrado
+ */
+router.patch('/:id', atualizarBlocoParcial);
 
 /**
  * @swagger

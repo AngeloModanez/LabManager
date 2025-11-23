@@ -82,6 +82,63 @@ const atualizarBloco = async (req, res, next) => {
 };
 
 /**
+ * Busca um bloco por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const buscarBlocoPorId = async (req, res, next) => {
+  try {
+    const bloco = await Bloco.findById(req.params.id);
+
+    if (!bloco) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bloco não encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: bloco
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Atualização parcial de um bloco por ID (PATCH)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const atualizarBlocoParcial = async (req, res, next) => {
+  try {
+    const bloco = await Bloco.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!bloco) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bloco não encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: bloco,
+      message: 'Bloco atualizado com sucesso'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Remove um bloco por ID
  * @param {Object} req - Request object
  * @param {Object} res - Response object
@@ -93,6 +150,7 @@ const removerBloco = async (req, res, next) => {
 
     if (!bloco) {
       return res.status(404).json({
+        success: false,
         message: 'Bloco não encontrado'
       });
     }
@@ -106,6 +164,8 @@ const removerBloco = async (req, res, next) => {
 module.exports = {
   criarBloco,
   listarBlocos,
+  buscarBlocoPorId,
   atualizarBloco,
+  atualizarBlocoParcial,
   removerBloco
 };

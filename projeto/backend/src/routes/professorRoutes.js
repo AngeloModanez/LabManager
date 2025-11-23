@@ -2,7 +2,9 @@ const express = require('express');
 const {
   criarProfessor,
   listarProfessores,
+  buscarProfessorPorId,
   atualizarProfessor,
+  atualizarProfessorParcial,
   removerProfessor
 } = require('../controllers/professorController');
 
@@ -99,6 +101,36 @@ router.get('/', listarProfessores);
 /**
  * @swagger
  * /api/v1/professores/{id}:
+ *   get:
+ *     summary: Busca um professor por ID
+ *     tags: [Professores]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do professor
+ *     responses:
+ *       200:
+ *         description: Professor encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Professor'
+ *       404:
+ *         description: Professor não encontrado
+ */
+router.get('/:id', buscarProfessorPorId);
+
+/**
+ * @swagger
+ * /api/v1/professores/{id}:
  *   put:
  *     summary: Atualiza um professor
  *     tags: [Professores]
@@ -122,6 +154,44 @@ router.get('/', listarProfessores);
  *         description: Professor não encontrado
  */
 router.put('/:id', atualizarProfessor);
+
+/**
+ * @swagger
+ * /api/v1/professores/{id}:
+ *   patch:
+ *     summary: Atualização parcial de um professor
+ *     tags: [Professores]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do professor
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               telefone:
+ *                 type: string
+ *               status:
+ *                 type: boolean
+ *           example:
+ *             status: false
+ *     responses:
+ *       200:
+ *         description: Professor atualizado com sucesso
+ *       404:
+ *         description: Professor não encontrado
+ */
+router.patch('/:id', atualizarProfessorParcial);
 
 /**
  * @swagger

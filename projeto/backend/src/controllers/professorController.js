@@ -88,6 +88,63 @@ const atualizarProfessor = async (req, res, next) => {
 };
 
 /**
+ * Busca um professor por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const buscarProfessorPorId = async (req, res, next) => {
+  try {
+    const professor = await Professor.findById(req.params.id);
+
+    if (!professor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Professor não encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: professor
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Atualização parcial de um professor por ID (PATCH)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const atualizarProfessorParcial = async (req, res, next) => {
+  try {
+    const professor = await Professor.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!professor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Professor não encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: professor,
+      message: 'Professor atualizado com sucesso'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Remove um professor por ID
  * @param {Object} req - Request object
  * @param {Object} res - Response object
@@ -95,10 +152,22 @@ const atualizarProfessor = async (req, res, next) => {
  */
 const removerProfessor = async (req, res, next) => {
   try {
+    // Verificar se há disciplinas vinculadas
+    const Disciplina = require('../models/Disciplina');
+    const disciplinasVinculadas = await Disciplina.countDocuments({ professorId: req.params.id });
+    
+    if (disciplinasVinculadas > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível excluir professor com disciplinas vinculadas'
+      });
+    }
+
     const professor = await Professor.findByIdAndDelete(req.params.id);
 
     if (!professor) {
       return res.status(404).json({
+        success: false,
         message: 'Professor não encontrado'
       });
     }
@@ -112,6 +181,8 @@ const removerProfessor = async (req, res, next) => {
 module.exports = {
   criarProfessor,
   listarProfessores,
+  buscarProfessorPorId,
   atualizarProfessor,
+  atualizarProfessorParcial,
   removerProfessor
 };

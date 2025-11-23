@@ -2,7 +2,9 @@ const express = require('express');
 const {
   criarLaboratorio,
   listarLaboratorios,
+  buscarLaboratorioPorId,
   atualizarLaboratorio,
+  atualizarLaboratorioParcial,
   removerLaboratorio
 } = require('../controllers/laboratorioController');
 
@@ -106,6 +108,36 @@ router.get('/', listarLaboratorios);
 /**
  * @swagger
  * /api/v1/laboratorios/{id}:
+ *   get:
+ *     summary: Busca um laboratório por ID
+ *     tags: [Laboratórios]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do laboratório
+ *     responses:
+ *       200:
+ *         description: Laboratório encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Laboratorio'
+ *       404:
+ *         description: Laboratório não encontrado
+ */
+router.get('/:id', buscarLaboratorioPorId);
+
+/**
+ * @swagger
+ * /api/v1/laboratorios/{id}:
  *   put:
  *     summary: Atualiza um laboratório
  *     tags: [Laboratórios]
@@ -129,6 +161,45 @@ router.get('/', listarLaboratorios);
  *         description: Laboratório não encontrado
  */
 router.put('/:id', atualizarLaboratorio);
+
+/**
+ * @swagger
+ * /api/v1/laboratorios/{id}:
+ *   patch:
+ *     summary: Atualização parcial de um laboratório
+ *     tags: [Laboratórios]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do laboratório
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               capacidade:
+ *                 type: integer
+ *               localizacao:
+ *                 type: string
+ *               status:
+ *                 type: boolean
+ *           example:
+ *             capacidade: 35
+ *             status: false
+ *     responses:
+ *       200:
+ *         description: Laboratório atualizado com sucesso
+ *       404:
+ *         description: Laboratório não encontrado
+ */
+router.patch('/:id', atualizarLaboratorioParcial);
 
 /**
  * @swagger

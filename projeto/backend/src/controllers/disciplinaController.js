@@ -139,6 +139,82 @@ const atualizarDisciplina = async (req, res, next) => {
 };
 
 /**
+ * Busca uma disciplina por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const buscarDisciplinaPorId = async (req, res, next) => {
+  try {
+    const disciplina = await Disciplina.findById(req.params.id)
+      .populate('cursoId', 'nome codigo')
+      .populate('professorId', 'nome email');
+
+    if (!disciplina) {
+      return res.status(404).json({
+        success: false,
+        message: 'Disciplina não encontrada'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: disciplina
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Atualização parcial de uma disciplina por ID (PATCH)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ */
+const atualizarDisciplinaParcial = async (req, res, next) => {
+  try {
+    const { cursoId, professorId } = req.body;
+    
+    if (cursoId && !mongoose.Types.ObjectId.isValid(cursoId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID do curso inválido'
+      });
+    }
+    
+    if (professorId && !mongoose.Types.ObjectId.isValid(professorId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID do professor inválido'
+      });
+    }
+
+    const disciplina = await Disciplina.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    ).populate('cursoId', 'nome codigo')
+     .populate('professorId', 'nome email');
+
+    if (!disciplina) {
+      return res.status(404).json({
+        success: false,
+        message: 'Disciplina não encontrada'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: disciplina,
+      message: 'Disciplina atualizada com sucesso'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Remove uma disciplina por ID
  * @param {Object} req - Request object
  * @param {Object} res - Response object
@@ -150,6 +226,7 @@ const removerDisciplina = async (req, res, next) => {
 
     if (!disciplina) {
       return res.status(404).json({
+        success: false,
         message: 'Disciplina não encontrada'
       });
     }
@@ -163,6 +240,8 @@ const removerDisciplina = async (req, res, next) => {
 module.exports = {
   criarDisciplina,
   listarDisciplinas,
+  buscarDisciplinaPorId,
   atualizarDisciplina,
+  atualizarDisciplinaParcial,
   removerDisciplina
 };
