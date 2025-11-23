@@ -2,6 +2,7 @@ const express = require('express');
 const {
   criarCurso,
   listarCursos,
+  buscarCursoPorId,
   atualizarCurso,
   removerCurso
 } = require('../controllers/cursoController');
@@ -142,6 +143,27 @@ router.post('/', criarCurso);
  *                   type: string
  */
 router.get('/', listarCursos);
+
+/**
+ * @swagger
+ * /api/v1/cursos/{id}:
+ *   get:
+ *     summary: Busca um curso por ID
+ *     tags: [Cursos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do curso
+ *     responses:
+ *       200:
+ *         description: Curso encontrado
+ *       404:
+ *         description: Curso não encontrado
+ */
+router.get('/:id', buscarCursoPorId);
 
 /**
  * @swagger

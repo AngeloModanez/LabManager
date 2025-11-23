@@ -11,8 +11,8 @@ const { setupSwagger } = require('./config/swagger');
 const errorHandler = require('./middleware/errorHandler');
 
 // Rotas
-const instituicoesRoutes = require('./routes/instituicoes');
-const cursosRoutes = require('./routes/cursos');
+const instituicoesRoutes = require('./routes/instituicaoRoutes');
+const cursosRoutes = require('./routes/cursoRoutes');
 const blocosRoutes = require('./routes/blocoRoutes');
 const professoresRoutes = require('./routes/professorRoutes');
 const laboratoriosRoutes = require('./routes/laboratorioRoutes');

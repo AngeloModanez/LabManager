@@ -36,8 +36,8 @@ const cursoSchema = new mongoose.Schema({
     type: [String],
     required: [true, 'Pelo menos um turno é obrigatório'],
     enum: {
-      values: ['manha', 'tarde', 'noite'],
-      message: 'Turno deve ser: manha, tarde ou noite'
+      values: ['manhã', 'tarde', 'noite'],
+      message: 'Turno deve ser: manhã, tarde ou noite'
     },
     validate: {
       validator: function(v) {
