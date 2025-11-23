@@ -1,4 +1,5 @@
 const Bloco = require('../models/Bloco');
+const { successResponse, successResponseWithPagination, notFoundResponse } = require('../utils/responseHelper');
 
 /**
  * Controller para operações CRUD de blocos de horário
@@ -14,7 +15,7 @@ const Bloco = require('../models/Bloco');
 const criarBloco = async (req, res, next) => {
   try {
     const bloco = await Bloco.create(req.body);
-    res.status(201).json(bloco);
+    successResponse(res, bloco, 'Bloco criado com sucesso', 201);
   } catch (error) {
     next(error);
   }
@@ -49,7 +50,15 @@ const listarBlocos = async (req, res, next) => {
       .limit(parseInt(limit))
       .sort({ turno: 1, dia_da_semana: 1, ordem: 1 });
 
-    res.json(blocos);
+    const total = await Bloco.countDocuments(filter);
+    const pagination = {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / limit)
+    };
+    
+    successResponseWithPagination(res, blocos, pagination);
   } catch (error) {
     next(error);
   }
@@ -70,12 +79,10 @@ const atualizarBloco = async (req, res, next) => {
     );
 
     if (!bloco) {
-      return res.status(404).json({
-        message: 'Bloco não encontrado'
-      });
+      return notFoundResponse(res, 'Bloco');
     }
 
-    res.json(bloco);
+    successResponse(res, bloco, 'Bloco atualizado com sucesso');
   } catch (error) {
     next(error);
   }

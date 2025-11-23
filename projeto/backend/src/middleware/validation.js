@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { errorResponse } = require('../utils/responseHelper');
 
 /**
  * Middleware de validação centralizado
@@ -15,13 +16,26 @@ const validateObjectId = (paramName = 'id') => {
     const id = req.params[paramName];
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: `${paramName} inválido`,
-        details: { field: paramName, value: id }
-      });
+      return errorResponse(res, `${paramName} inválido`, 400, { field: paramName, value: id });
     }
     
+    next();
+  };
+};
+
+/**
+ * Valida ObjectIds no body da requisição
+ * @param {string[]} fields - Campos a serem validados
+ * @returns {Function} Middleware function
+ */
+const validateObjectIdsInBody = (fields) => {
+  return (req, res, next) => {
+    for (const field of fields) {
+      const value = req.body[field];
+      if (value && !mongoose.Types.ObjectId.isValid(value)) {
+        return errorResponse(res, `${field} inválido`, 400, { field, value });
+      }
+    }
     next();
   };
 };
@@ -81,6 +95,7 @@ const validatePagination = (req, res, next) => {
 
 module.exports = {
   validateObjectId,
+  validateObjectIdsInBody,
   validateRequiredFields,
   validatePagination
 };

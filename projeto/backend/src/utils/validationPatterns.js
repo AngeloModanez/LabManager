@@ -1,3 +1,5 @@
+const { MESSAGES: COMMON_MESSAGES } = require('./constants');
+
 /**
  * Padrões de validação padronizados
  * @module ValidationPatterns

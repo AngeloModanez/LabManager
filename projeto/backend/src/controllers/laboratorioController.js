@@ -1,4 +1,5 @@
 const Laboratorio = require('../models/Laboratorio');
+const { successResponse, successResponseWithPagination, notFoundResponse } = require('../utils/responseHelper');
 
 /**
  * Controller para operações CRUD de laboratórios
@@ -14,7 +15,7 @@ const Laboratorio = require('../models/Laboratorio');
 const criarLaboratorio = async (req, res, next) => {
   try {
     const laboratorio = await Laboratorio.create(req.body);
-    res.status(201).json(laboratorio);
+    successResponse(res, laboratorio, 'Laboratório criado com sucesso', 201);
   } catch (error) {
     next(error);
   }
@@ -49,7 +50,15 @@ const listarLaboratorios = async (req, res, next) => {
       .limit(parseInt(limit))
       .sort({ nome: 1 });
 
-    res.json(laboratorios);
+    const total = await Laboratorio.countDocuments(filter);
+    const pagination = {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / limit)
+    };
+    
+    successResponseWithPagination(res, laboratorios, pagination);
   } catch (error) {
     next(error);
   }
@@ -70,12 +79,10 @@ const atualizarLaboratorio = async (req, res, next) => {
     );
 
     if (!laboratorio) {
-      return res.status(404).json({
-        message: 'Laboratório não encontrado'
-      });
+      return notFoundResponse(res, 'Laboratório');
     }
 
-    res.json(laboratorio);
+    successResponse(res, laboratorio, 'Laboratório atualizado com sucesso');
   } catch (error) {
     next(error);
   }

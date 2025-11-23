@@ -1,5 +1,6 @@
 const Disciplina = require('../models/Disciplina');
 const mongoose = require('mongoose');
+const { successResponse, successResponseWithPagination, notFoundResponse, errorResponse } = require('../utils/responseHelper');
 
 /**
  * Controller para operações CRUD de disciplinas
@@ -17,20 +18,16 @@ const criarDisciplina = async (req, res, next) => {
     // Validar ObjectIds
     const { cursoId, professorId } = req.body;
     
-    if (!mongoose.Types.ObjectId.isValid(cursoId)) {
-      return res.status(400).json({
-        message: 'ID do curso inválido'
-      });
+    if (cursoId && !mongoose.Types.ObjectId.isValid(cursoId)) {
+      return errorResponse(res, 'ID do curso inválido');
     }
     
-    if (!mongoose.Types.ObjectId.isValid(professorId)) {
-      return res.status(400).json({
-        message: 'ID do professor inválido'
-      });
+    if (professorId && !mongoose.Types.ObjectId.isValid(professorId)) {
+      return errorResponse(res, 'ID do professor inválido');
     }
 
     const disciplina = await Disciplina.create(req.body);
-    res.status(201).json(disciplina);
+    successResponse(res, disciplina, 'Disciplina criada com sucesso', 201);
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({
@@ -86,7 +83,15 @@ const listarDisciplinas = async (req, res, next) => {
       .limit(parseInt(limit))
       .sort({ nome: 1 });
 
-    res.json(disciplinas);
+    const total = await Disciplina.countDocuments(filter);
+    const pagination = {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / limit)
+    };
+    
+    successResponseWithPagination(res, disciplinas, pagination);
   } catch (error) {
     next(error);
   }
@@ -122,12 +127,10 @@ const atualizarDisciplina = async (req, res, next) => {
     );
 
     if (!disciplina) {
-      return res.status(404).json({
-        message: 'Disciplina não encontrada'
-      });
+      return notFoundResponse(res, 'Disciplina');
     }
 
-    res.json(disciplina);
+    successResponse(res, disciplina, 'Disciplina atualizada com sucesso');
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({

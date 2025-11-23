@@ -1,5 +1,6 @@
 const Curso = require('../models/Curso');
 const mongoose = require('mongoose');
+const { successResponse, successResponseWithPagination, notFoundResponse, errorResponse } = require('../utils/responseHelper');
 
 /**
  * Controller para operações CRUD de cursos
@@ -38,9 +39,7 @@ const listarCursos = async (req, res, next) => {
 
     if (instituicaoId) {
       if (!mongoose.Types.ObjectId.isValid(instituicaoId)) {
-        return res.status(400).json({
-          message: 'ID da instituição inválido'
-        });
+        return errorResponse(res, 'ID da instituição inválido');
       }
       filter.instituicaoId = instituicaoId;
     }

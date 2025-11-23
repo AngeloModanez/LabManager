@@ -1,5 +1,4 @@
 const express = require('express');
-const { EXAMPLES } = require('../utils/validationPatterns');
 const {
   criarInstituicao,
   listarInstituicoes,
