@@ -32,7 +32,6 @@ const professorSchema = new mongoose.Schema({
     required: [true, 'Email é obrigatório'],
     trim: true,
     lowercase: true,
-    unique: true,
     match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email deve ter um formato válido']
   },
   telefone: {
