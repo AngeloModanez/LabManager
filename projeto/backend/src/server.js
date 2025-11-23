@@ -16,6 +16,7 @@ const cursosRoutes = require('./routes/cursos');
 const blocosRoutes = require('./routes/blocoRoutes');
 const professoresRoutes = require('./routes/professorRoutes');
 const laboratoriosRoutes = require('./routes/laboratorioRoutes');
+const disciplinasRoutes = require('./routes/disciplinaRoutes');
 
 /**
  * Aplicação Express principal
@@ -48,6 +49,7 @@ app.use('/api/v1/cursos', cursosRoutes);
 app.use('/api/v1/blocos', blocosRoutes);
 app.use('/api/v1/professores', professoresRoutes);
 app.use('/api/v1/laboratorios', laboratoriosRoutes);
+app.use('/api/v1/disciplinas', disciplinasRoutes);
 
 // Rota de teste
 app.get('/', (req, res) => {
