@@ -14,7 +14,11 @@ const Instituicao = require('../models/Instituicao');
 const criarInstituicao = async (req, res, next) => {
   try {
     const instituicao = await Instituicao.create(req.body);
-    res.status(201).json(instituicao);
+    res.status(201).json({
+      success: true,
+      data: instituicao,
+      message: 'Instituição criada com sucesso'
+    });
   } catch (error) {
     next(error);
   }
@@ -45,7 +49,18 @@ const listarInstituicoes = async (req, res, next) => {
       .limit(parseInt(limit))
       .sort({ nome: 1 });
 
-    res.json(instituicoes);
+    const total = await Instituicao.countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: instituicoes,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -67,11 +82,16 @@ const atualizarInstituicao = async (req, res, next) => {
 
     if (!instituicao) {
       return res.status(404).json({
+        success: false,
         message: 'Instituição não encontrada'
       });
     }
 
-    res.json(instituicao);
+    res.json({
+      success: true,
+      data: instituicao,
+      message: 'Instituição atualizada com sucesso'
+    });
   } catch (error) {
     next(error);
   }
@@ -89,11 +109,15 @@ const buscarInstituicaoPorId = async (req, res, next) => {
 
     if (!instituicao) {
       return res.status(404).json({
+        success: false,
         message: 'Instituição não encontrada'
       });
     }
 
-    res.json(instituicao);
+    res.json({
+      success: true,
+      data: instituicao
+    });
   } catch (error) {
     next(error);
   }
@@ -144,6 +168,7 @@ const removerInstituicao = async (req, res, next) => {
     
     if (cursosVinculados > 0) {
       return res.status(400).json({
+        success: false,
         message: 'Não é possível excluir instituição com cursos vinculados'
       });
     }
@@ -152,6 +177,7 @@ const removerInstituicao = async (req, res, next) => {
 
     if (!instituicao) {
       return res.status(404).json({
+        success: false,
         message: 'Instituição não encontrada'
       });
     }

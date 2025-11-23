@@ -14,13 +14,12 @@ const Professor = require('../models/Professor');
 const criarProfessor = async (req, res, next) => {
   try {
     const professor = await Professor.create(req.body);
-    res.status(201).json(professor);
+    res.status(201).json({
+      success: true,
+      data: professor,
+      message: 'Professor criado com sucesso'
+    });
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(409).json({
-        message: 'Email já está em uso por outro professor'
-      });
-    }
     next(error);
   }
 };
@@ -50,7 +49,18 @@ const listarProfessores = async (req, res, next) => {
       .limit(parseInt(limit))
       .sort({ nome: 1 });
 
-    res.json(professores);
+    const total = await Professor.countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: professores,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -72,11 +82,16 @@ const atualizarProfessor = async (req, res, next) => {
 
     if (!professor) {
       return res.status(404).json({
+        success: false,
         message: 'Professor não encontrado'
       });
     }
 
-    res.json(professor);
+    res.json({
+      success: true,
+      data: professor,
+      message: 'Professor atualizado com sucesso'
+    });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({

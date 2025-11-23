@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { VALIDATORS } = require('../utils/validationPatterns');
 
 /**
  * Schema para o modelo de Instituições
@@ -36,22 +37,18 @@ const instituicaoSchema = new mongoose.Schema({
     required: [true, 'CNPJ é obrigatório'],
     unique: true,
     trim: true,
-    validate: {
-      validator: function(v) {
-        return /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(v);
-      },
-      message: 'CNPJ deve estar no formato XX.XXX.XXX/XXXX-XX'
-    }
+    validate: VALIDATORS.cnpj
   },
   email: {
     type: String,
     trim: true,
     lowercase: true,
-    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email deve ter um formato válido']
+    validate: VALIDATORS.email
   },
   telefone: {
     type: String,
-    trim: true
+    trim: true,
+    validate: VALIDATORS.telefone
   },
   endereco: {
     type: String,

@@ -206,6 +206,7 @@ router.put('/:id', atualizarDisciplina);
  *               status:
  *                 type: boolean
  *           example:
+ *             nome: "Disciplina Atualizada"
  *             cargaHoraria: 60
  *             status: false
  *     responses:

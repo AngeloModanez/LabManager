@@ -1,4 +1,5 @@
 const express = require('express');
+const { EXAMPLES } = require('../utils/validationPatterns');
 const {
   criarProfessor,
   listarProfessores,
@@ -184,6 +185,9 @@ router.put('/:id', atualizarProfessor);
  *               status:
  *                 type: boolean
  *           example:
+ *             nome: "Professor Atualizado"
+ *             email: "email.example@email.com"
+ *             telefone: "(99) 99999-9999"
  *             status: false
  *     responses:
  *       200:

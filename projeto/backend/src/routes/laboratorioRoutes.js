@@ -191,7 +191,9 @@ router.put('/:id', atualizarLaboratorio);
  *               status:
  *                 type: boolean
  *           example:
+ *             nome: "Laboratório Atualizado"
  *             capacidade: 35
+ *             localizacao: "Bloco B - Sala 201"
  *             status: false
  *     responses:
  *       200:

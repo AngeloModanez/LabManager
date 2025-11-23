@@ -36,7 +36,7 @@ const router = express.Router();
  *           type: array
  *           items:
  *             type: string
- *             enum: [manha, tarde, noite]
+ *             enum: [manhã, tarde, noite]
  *           description: Turnos do curso
  *         ativo:
  *           type: boolean
@@ -59,7 +59,7 @@ const router = express.Router();
  *           example:
  *             nome: "Análise e Desenvolvimento de Sistemas"
  *             codigo: "ADS"
- *             turnos: ["manha", "tarde"]
+ *             turnos: ["manhã", "tarde"]
  *             instituicaoId: ""
  *             ativo: true
  *     responses:
@@ -187,7 +187,7 @@ router.get('/:id', buscarCursoPorId);
  *             $ref: '#/components/schemas/Curso'
  *           example:
  *             nome: "Engenharia de Software Atualizado"
- *             turnos: ["noite"]
+ *             turnos: ["manhã", "noite"]
  *             ativo: false
  *     responses:
  *       200:
@@ -249,6 +249,8 @@ router.put('/:id', atualizarCurso);
  *               ativo:
  *                 type: boolean
  *           example:
+ *             nome: "Curso Atualizado"
+ *             turnos: ["noite"]
  *             ativo: false
  *     responses:
  *       200:

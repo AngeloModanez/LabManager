@@ -216,8 +216,12 @@ router.put('/:id', atualizarBloco);
  *               status:
  *                 type: boolean
  *           example:
+ *             turno: "tarde"
+ *             dia_da_semana: "terça"
  *             inicio: "14:00"
  *             fim: "14:50"
+ *             ordem: 2
+ *             status: false
  *     responses:
  *       200:
  *         description: Bloco atualizado com sucesso
