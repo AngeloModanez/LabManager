@@ -10,7 +10,7 @@ const { VALIDATORS } = require('../utils/validationPatterns');
  * @property {string} [email] - Email da instituição
  * @property {string} [telefone] - Telefone da instituição
  * @property {string} [endereco] - Endereço da instituição
- * @property {boolean} [ativo] - Status ativo/inativo da instituição
+ * @property {boolean} [status] - Status ativo/inativo da instituição
  * @property {Date} createdAt - Data de criação
  * @property {Date} updatedAt - Data de atualização
  */
@@ -55,7 +55,7 @@ const instituicaoSchema = new mongoose.Schema({
     trim: true,
     maxlength: [200, 'Endereço deve ter no máximo 200 caracteres']
   },
-  ativo: {
+  status: {
     type: Boolean,
     default: true
   }

@@ -21,16 +21,16 @@ const blocoSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Turno é obrigatório'],
     enum: {
-      values: ['manhã', 'tarde', 'noite'],
-      message: 'Turno deve ser: manhã, tarde ou noite'
+      values: ['Manhã', 'Tarde', 'Noite'],
+      message: 'Turno deve ser: Manhã, Tarde ou Noite'
     }
   },
   dia_da_semana: {
     type: String,
     required: [true, 'Dia da semana é obrigatório'],
     enum: {
-      values: ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'],
-      message: 'Dia da semana deve ser: segunda, terça, quarta, quinta, sexta ou sábado'
+      values: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
+      message: 'Dia da semana deve ser: Segunda, Terça, Quarta, Quinta, Sexta ou Sábado'
     }
   },
   inicio: {

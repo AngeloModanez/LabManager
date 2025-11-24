@@ -34,7 +34,7 @@ const criarCurso = async (req, res, next) => {
  */
 const listarCursos = async (req, res, next) => {
   try {
-    const { instituicaoId, nome, ativo, page = 1, limit = 20 } = req.query;
+    const { instituicaoId, nome, status, page = 1, limit = 20 } = req.query;
     const filter = {};
 
     if (instituicaoId) {
@@ -48,13 +48,13 @@ const listarCursos = async (req, res, next) => {
       filter.nome = { $regex: nome, $options: 'i' };
     }
 
-    if (ativo !== undefined) {
-      filter.ativo = ativo === 'true';
+    if (status !== undefined) {
+      filter.status = status === 'true';
     }
 
     const skip = (page - 1) * limit;
     const cursos = await Curso.find(filter)
-      .populate('instituicaoId', 'nome sigla')
+      .populate('instituicaoId', 'nome sigla status')
       .skip(skip)
       .limit(parseInt(limit))
       .sort({ nome: 1 });
@@ -88,7 +88,7 @@ const atualizarCurso = async (req, res, next) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('instituicaoId', 'nome sigla');
+    ).populate('instituicaoId', 'nome sigla status');
 
     if (!curso) {
       return res.status(404).json({
@@ -121,7 +121,7 @@ const atualizarCurso = async (req, res, next) => {
 const buscarCursoPorId = async (req, res, next) => {
   try {
     const curso = await Curso.findById(req.params.id)
-      .populate('instituicaoId', 'nome sigla');
+      .populate('instituicaoId', 'nome sigla status');
 
     if (!curso) {
       return res.status(404).json({
@@ -151,7 +151,7 @@ const atualizarCursoParcial = async (req, res, next) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('instituicaoId', 'nome sigla');
+    ).populate('instituicaoId', 'nome sigla status');
 
     if (!curso) {
       return res.status(404).json({

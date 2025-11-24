@@ -25,10 +25,10 @@ import SearchBar from '../../components/common/SearchBar/SearchBar';
 import Modal from '../../components/common/Modal/Modal';
 import Input from '../../components/common/Input/Input';
 import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
-import { instituicoesService } from '../../services/api';
+import { professoresService } from '../../services/api';
 
-const InstituicoesPage = () => {
-  const [instituicoes, setInstituicoes] = useState([]);
+const ProfessoresPage = () => {
+  const [professores, setProfessores] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -40,21 +40,18 @@ const InstituicoesPage = () => {
   
   const [formData, setFormData] = useState({
     nome: '',
-    sigla: '',
-    cnpj: '',
     email: '',
     telefone: '',
-    endereco: '',
     status: true,
   });
 
-  const carregarInstituicoes = useCallback(async () => {
+  const carregarProfessores = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await instituicoesService.listar();
-      setInstituicoes(response.data.data || response.data);
+      const response = await professoresService.listar();
+      setProfessores(response.data.data || response.data);
     } catch (error) {
-      mostrarSnackbar('Erro ao carregar instituições', 'error');
+      mostrarSnackbar('Erro ao carregar professores', 'error');
     } finally {
       setLoading(false);
     }
@@ -64,27 +61,21 @@ const InstituicoesPage = () => {
     setSnackbar({ open: true, message, severity });
   }, []);
 
-  const abrirModal = useCallback((instituicao = null) => {
-    if (instituicao) {
-      setEditingId(instituicao._id);
+  const abrirModal = useCallback((professor = null) => {
+    if (professor) {
+      setEditingId(professor._id);
       setFormData({
-        nome: instituicao.nome || '',
-        sigla: instituicao.sigla || '',
-        cnpj: instituicao.cnpj || '',
-        email: instituicao.email || '',
-        telefone: instituicao.telefone || '',
-        endereco: instituicao.endereco || '',
-        status: instituicao.status !== undefined ? instituicao.status : true,
+        nome: professor.nome || '',
+        email: professor.email || '',
+        telefone: professor.telefone || '',
+        status: professor.status !== undefined ? professor.status : true,
       });
     } else {
       setEditingId(null);
       setFormData({
         nome: '',
-        sigla: '',
-        cnpj: '',
         email: '',
         telefone: '',
-        endereco: '',
         status: true,
       });
     }
@@ -97,23 +88,23 @@ const InstituicoesPage = () => {
     setShowErrors(false);
   }, []);
 
-  const salvarInstituicao = async () => {
-    if (!formData.nome || !formData.sigla || !formData.cnpj) {
+  const salvarProfessor = async () => {
+    if (!formData.nome || !formData.email) {
       setShowErrors(true);
       return;
     }
     try {
       if (editingId) {
-        await instituicoesService.atualizar(editingId, formData);
-        mostrarSnackbar('Instituição atualizada com sucesso');
+        await professoresService.atualizar(editingId, formData);
+        mostrarSnackbar('Professor atualizado com sucesso');
       } else {
-        await instituicoesService.criar(formData);
-        mostrarSnackbar('Instituição criada com sucesso');
+        await professoresService.criar(formData);
+        mostrarSnackbar('Professor criado com sucesso');
       }
       fecharModal();
-      carregarInstituicoes();
+      carregarProfessores();
     } catch (error) {
-      const message = error.response?.data?.message || 'Erro ao salvar instituição';
+      const message = error.response?.data?.message || 'Erro ao salvar professor';
       mostrarSnackbar(message, 'error');
     }
   };
@@ -123,13 +114,13 @@ const InstituicoesPage = () => {
     setConfirmOpen(true);
   }, []);
 
-  const removerInstituicao = async () => {
+  const removerProfessor = async () => {
     try {
-      await instituicoesService.remover(deletingId);
-      mostrarSnackbar('Instituição removida com sucesso');
-      carregarInstituicoes();
+      await professoresService.remover(deletingId);
+      mostrarSnackbar('Professor removido com sucesso');
+      carregarProfessores();
     } catch (error) {
-      const message = error.response?.data?.message || 'Erro ao remover instituição';
+      const message = error.response?.data?.message || 'Erro ao remover professor';
       mostrarSnackbar(message, 'error');
     }
   };
@@ -141,22 +132,22 @@ const InstituicoesPage = () => {
     }));
   }, []);
 
-  const instituicoesFiltradas = instituicoes.filter((instituicao) =>
-    ['nome', 'cnpj', 'email', 'telefone'].some(field =>
-      instituicao[field]?.toLowerCase().includes(filtro.toLowerCase())
+  const professoresFiltrados = professores.filter((professor) =>
+    ['nome', 'email', 'telefone'].some(field =>
+      professor[field]?.toLowerCase().includes(filtro.toLowerCase())
     )
   );
 
   useEffect(() => {
-    carregarInstituicoes();
-  }, [carregarInstituicoes]);
+    carregarProfessores();
+  }, [carregarProfessores]);
 
   const modalActions = (
     <>
       <Button onClick={fecharModal} variant="outlined">
         Cancelar
       </Button>
-      <Button onClick={salvarInstituicao}>
+      <Button onClick={salvarProfessor}>
         {editingId ? 'Atualizar' : 'Criar'}
       </Button>
     </>
@@ -168,7 +159,7 @@ const InstituicoesPage = () => {
         <SearchBar
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
-          placeholder="Filtrar instituições..."
+          placeholder="Filtrar professores..."
         />
         
         <Button
@@ -177,7 +168,7 @@ const InstituicoesPage = () => {
           variant="outlined"
           color="primary"
         >
-          Nova Instituição
+          Novo Professor
         </Button>
       </Box>
 
@@ -212,37 +203,33 @@ const InstituicoesPage = () => {
           }}>
             <TableRow>
               <TableCell sx={{ width: 300 }}>Nome</TableCell>
-              <TableCell sx={{ width: 70 }}>Sigla</TableCell>
-              <TableCell sx={{ width: 150 }}>CNPJ</TableCell>
-              <TableCell sx={{ width: 200 }}>Email</TableCell>
-              <TableCell sx={{ width: 120 }}>Telefone</TableCell>
+              <TableCell sx={{ width: 250 }}>Email</TableCell>
+              <TableCell sx={{ width: 150 }}>Telefone</TableCell>
               <TableCell sx={{ width: 60 }}>Status</TableCell>
               <TableCell sx={{ width: 80 }}>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {instituicoesFiltradas.map((instituicao) => (
-              <TableRow key={instituicao._id}>
-                <TableCell>{instituicao.nome}</TableCell>
-                <TableCell>{instituicao.sigla}</TableCell>
-                <TableCell>{instituicao.cnpj}</TableCell>
-                <TableCell>{instituicao.email || 'N/A'}</TableCell>
-                <TableCell>{instituicao.telefone || 'N/A'}</TableCell>
+            {professoresFiltrados.map((professor) => (
+              <TableRow key={professor._id}>
+                <TableCell>{professor.nome}</TableCell>
+                <TableCell>{professor.email}</TableCell>
+                <TableCell>{professor.telefone || 'N/A'}</TableCell>
                 <TableCell>
                   <Switch
-                    checked={instituicao.status}
+                    checked={professor.status}
                     onChange={async (e) => {
                       const novoStatus = e.target.checked;
                       try {
-                        await instituicoesService.atualizar(instituicao._id, { ...instituicao, status: novoStatus });
-                        setInstituicoes(prev => 
-                          prev.map(inst => 
-                            inst._id === instituicao._id 
-                              ? { ...inst, status: novoStatus }
-                              : inst
+                        await professoresService.atualizar(professor._id, { ...professor, status: novoStatus });
+                        setProfessores(prev => 
+                          prev.map(prof => 
+                            prof._id === professor._id 
+                              ? { ...prof, status: novoStatus }
+                              : prof
                           )
                         );
-                        mostrarSnackbar(`Instituição ${novoStatus ? 'ativada' : 'desativada'} com sucesso`);
+                        mostrarSnackbar(`Professor ${novoStatus ? 'ativado' : 'desativado'} com sucesso`);
                       } catch (error) {
                         mostrarSnackbar('Erro ao alterar status', 'error');
                       }
@@ -254,14 +241,14 @@ const InstituicoesPage = () => {
                   <Box sx={{ display: 'flex', gap: 0.5 }}>
                     <IconButton
                       size="small"
-                      onClick={() => abrirModal(instituicao)}
+                      onClick={() => abrirModal(professor)}
                       color="primary"
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"
-                      onClick={() => confirmarRemocao(instituicao._id)}
+                      onClick={() => confirmarRemocao(professor._id)}
                       color="error"
                     >
                       <DeleteIcon fontSize="small" />
@@ -269,8 +256,7 @@ const InstituicoesPage = () => {
                   </Box>
                 </TableCell>
               </TableRow>
-            ))
-          }
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -278,81 +264,54 @@ const InstituicoesPage = () => {
       <Modal
         open={modalOpen}
         onClose={fecharModal}
-        title={editingId ? 'Editar Instituição' : 'Cadastrar Nova Instituição'}
+        title={editingId ? 'Editar Professor' : 'Cadastrar Novo Professor'}
         actions={modalActions}
         maxWidth="md"
         fullWidth
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-            <Input
-              label="Nome *"
-              value={formData.nome}
-              onChange={handleFormChange('nome')}
-              required
-              minLength={3}
-              maxLength={150}
-              size="small"
-              forceShowError={showErrors}
-            />
-            <Input
-              label="Sigla *"
-              value={formData.sigla}
-              onChange={handleFormChange('sigla')}
-              required
-              minLength={2}
-              maxLength={10}
-              size="small"
-              forceShowError={showErrors}
-            />
-          </Box>
+          <Input
+            label="Nome *"
+            value={formData.nome}
+            onChange={handleFormChange('nome')}
+            required
+            minLength={3}
+            maxLength={100}
+            size="small"
+            forceShowError={showErrors}
+          />
           
           <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <Input
+              label="Email *"
+              type="email"
+              value={formData.email}
+              onChange={handleFormChange('email')}
+              required
+              maxLength={100}
+              size="small"
+              forceShowError={showErrors}
+              sx={{ flex: 1 }}
+            />
+            
             <Input
               label="Telefone"
               value={formData.telefone}
               onChange={handleFormChange('telefone')}
               mask="telefone"
               size="small"
-            />
-            <Input
-              label="CNPJ *"
-              value={formData.cnpj}
-              onChange={handleFormChange('cnpj')}
-              mask="cnpj"
-              required
-              size="small"
-              forceShowError={showErrors}
+              sx={{ flex: 1 }}
             />
           </Box>
-          
-          <Input
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={handleFormChange('email')}
-            size="small"
-            maxLength={50}
-          />
-          
-          <Input
-            label="Endereço"
-            value={formData.endereco}
-            onChange={handleFormChange('endereco')}
-            multiline
-            rows={4}
-            maxLength={100}
-            size="small"
-          />
         </Box>
       </Modal>
 
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        onConfirm={removerInstituicao}
-        title="Excluir Instituição"
-        message="Esta ação não pode ser desfeita. Todos os dados relacionados a esta instituição serão permanentemente removidos."
+        onConfirm={removerProfessor}
+        title="Excluir Professor"
+        message="Esta ação não pode ser desfeita. Todos os dados relacionados a este professor serão permanentemente removidos."
         confirmText="Excluir"
         cancelText="Cancelar"
       />
@@ -374,4 +333,4 @@ const InstituicoesPage = () => {
   );
 };
 
-export default InstituicoesPage;
+export default ProfessoresPage;
