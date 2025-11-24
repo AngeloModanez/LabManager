@@ -17,8 +17,9 @@ import {
 import { instituicoesService } from '../../services/api';
 import MobileInput from '../common/MobileInput';
 import MobileList from '../common/MobileList';
+import MobileConfirmDialog from '../common/MobileConfirmDialog';
 
-const InstituicoesScreen = () => {
+const InstituicoesScreen = ({ navigation }) => {
   const [instituicoes, setInstituicoes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
@@ -37,12 +38,14 @@ const InstituicoesScreen = () => {
     status: true,
   });
   const [showErrors, setShowErrors] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const carregarInstituicoes = async () => {
     setLoading(true);
     try {
       const response = await instituicoesService.listar();
-      setInstituicoes(response.data);
+      setInstituicoes(response.data.data || response.data || []);
     } catch (error) {
       console.error('Erro ao carregar:', error);
       mostrarSnackbar('Erro ao carregar instituições');
@@ -111,34 +114,44 @@ const InstituicoesScreen = () => {
     }
   };
 
-  const removerInstituicao = (id) => {
-    Alert.alert(
-      'Confirmar Remoção',
-      'Tem certeza que deseja remover esta instituição?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await instituicoesService.remover(id);
-              mostrarSnackbar('Instituição removida com sucesso');
-              carregarInstituicoes();
-            } catch (error) {
-              mostrarSnackbar(error.message);
-            }
-          },
-        },
-      ]
-    );
+  const confirmarRemocao = (id) => {
+    setDeletingId(id);
+    setConfirmVisible(true);
   };
 
-  const instituicoesFiltradas = instituicoes.filter((instituicao) =>
+  const removerInstituicao = async () => {
+    try {
+      await instituicoesService.remover(deletingId);
+      mostrarSnackbar('Instituição removida com sucesso');
+      carregarInstituicoes();
+    } catch (error) {
+      mostrarSnackbar(error.message);
+    }
+    setConfirmVisible(false);
+  };
+
+  const instituicoesFiltradas = (instituicoes || []).filter((instituicao) =>
     ['nome', 'sigla', 'cnpj', 'email', 'telefone'].some(field =>
       instituicao[field]?.toLowerCase().includes(filtro.toLowerCase())
     )
   );
+
+  const toggleStatus = async (instituicao) => {
+    try {
+      const novoStatus = !instituicao.status;
+      await instituicoesService.atualizar(instituicao._id, { status: novoStatus });
+      setInstituicoes(prev => 
+        prev.map(inst => 
+          inst._id === instituicao._id 
+            ? { ...inst, status: novoStatus }
+            : inst
+        )
+      );
+      mostrarSnackbar(`Instituição ${novoStatus ? 'ativada' : 'desativada'} com sucesso`);
+    } catch (error) {
+      mostrarSnackbar('Erro ao alterar status');
+    }
+  };
 
   const renderInstituicaoItem = (instituicao) => (
     <>
@@ -149,10 +162,13 @@ const InstituicoesScreen = () => {
       <Paragraph>Telefone: {instituicao.telefone || 'N/A'}</Paragraph>
       <Chip
         mode="outlined"
+        onPress={() => toggleStatus(instituicao)}
         style={{ 
           alignSelf: 'flex-start', 
-          marginTop: 8,
-          backgroundColor: instituicao.status ? '#e8f5e8' : '#ffeaea'
+          marginTop: 12,
+          backgroundColor: instituicao.status ? '#e8f5e8' : '#ffeaea',
+          borderRadius: 20,
+          paddingHorizontal: 4
         }}
       >
         {instituicao.status ? 'Ativo' : 'Inativo'}
@@ -165,17 +181,22 @@ const InstituicoesScreen = () => {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Appbar.Header>
-        <Appbar.Content title="Instituições" />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
+
+        <Appbar.Content title="Instituições" titleStyle={{ color: '#fff' }} />
       </Appbar.Header>
 
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: 16, paddingBottom: 0 }}>
         <Searchbar
           placeholder="Filtrar instituições..."
           onChangeText={setFiltro}
           value={filtro}
-          style={{ marginBottom: 16 }}
+          style={{ 
+            marginBottom: 16,
+            borderRadius: 12,
+            elevation: 2
+          }}
         />
       </View>
 
@@ -183,7 +204,7 @@ const InstituicoesScreen = () => {
         data={instituicoesFiltradas}
         renderItem={renderInstituicaoItem}
         onEdit={abrirDialog}
-        onDelete={removerInstituicao}
+        onDelete={confirmarRemocao}
         emptyMessage="Nenhuma instituição encontrada"
       />
 
@@ -191,20 +212,36 @@ const InstituicoesScreen = () => {
         icon="plus"
         style={{
           position: 'absolute',
-          margin: 16,
+          margin: 20,
           right: 0,
           bottom: 0,
+          borderRadius: 16,
+          elevation: 6
         }}
+        customSize={56}
         onPress={() => abrirDialog()}
       />
 
       <Portal>
-        <Dialog visible={dialogVisible} onDismiss={fecharDialog}>
-          <Dialog.Title>
+        <Dialog 
+          visible={dialogVisible} 
+          onDismiss={fecharDialog}
+          style={{ borderRadius: 8 }}
+        >
+          <Dialog.Title style={{ 
+            textAlign: 'center',
+            fontSize: 20,
+            fontWeight: '600',
+            color: '#1976d2',
+            paddingBottom: 10
+          }}>
             {editingId ? 'Editar Instituição' : 'Nova Instituição'}
           </Dialog.Title>
           <Dialog.ScrollArea>
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 24 }}>
+            <ScrollView contentContainerStyle={{ 
+              paddingHorizontal: 24,
+              paddingVertical: 10
+            }}>
               <MobileInput
                 label="Nome *"
                 value={formData.nome}
@@ -259,23 +296,48 @@ const InstituicoesScreen = () => {
                 maxLength={100}
               />
               
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <Text>Ativo: </Text>
-                <Switch
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                />
-              </View>
+
             </ScrollView>
           </Dialog.ScrollArea>
-          <Dialog.Actions>
-            <Button onPress={fecharDialog}>Cancelar</Button>
-            <Button onPress={salvarInstituicao} mode="contained">
+          <Dialog.Actions style={{ 
+            paddingHorizontal: 24,
+            paddingVertical: 16,
+            gap: 12
+          }}>
+            <Button 
+              onPress={fecharDialog}
+              mode="outlined"
+              style={{ 
+                flex: 1,
+                borderRadius: 12,
+                borderColor: '#1976d2'
+              }}
+              labelStyle={{ color: '#1976d2' }}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onPress={salvarInstituicao} 
+              mode="contained"
+              style={{ 
+                flex: 1,
+                borderRadius: 12,
+                backgroundColor: '#1976d2'
+              }}
+            >
               {editingId ? 'Atualizar' : 'Criar'}
             </Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      <MobileConfirmDialog
+        visible={confirmVisible}
+        onDismiss={() => setConfirmVisible(false)}
+        onConfirm={removerInstituicao}
+        title="Excluir Instituição"
+        message="Esta ação não pode ser desfeita. Todos os dados relacionados a esta instituição serão permanentemente removidos."
+      />
 
       <Snackbar
         visible={snackbarVisible}

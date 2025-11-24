@@ -31,8 +31,17 @@ const MobileList = ({
   return (
     <ScrollView style={{ flex: 1, padding: 16 }}>
       {data.map((item, index) => (
-        <Card key={item._id || index} style={{ marginBottom: 12 }}>
-          <Card.Content>
+        <Card key={item._id || index} style={{ 
+          marginBottom: 16,
+          borderRadius: 16,
+          elevation: 3,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 6,
+          backgroundColor: '#fff'
+        }}>
+          <Card.Content style={{ padding: 20 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <View style={{ flex: 1 }}>
                 {renderItem ? renderItem(item) : (
@@ -44,7 +53,8 @@ const MobileList = ({
                         style={{ 
                           alignSelf: 'flex-start', 
                           marginTop: 8,
-                          backgroundColor: item.status ? '#e8f5e8' : '#ffeaea'
+                          backgroundColor: item.status ? '#e8f5e8' : '#ffeaea',
+                          borderRadius: 20
                         }}
                       >
                         {item.status ? 'Ativo' : 'Inativo'}
@@ -53,11 +63,15 @@ const MobileList = ({
                   </>
                 )}
               </View>
-              <View style={{ flexDirection: 'row' }}>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
                 {onEdit && (
                   <IconButton
                     icon="pencil"
                     mode="contained"
+                    size={20}
+                    containerColor="#1976d2"
+                    iconColor="#fff"
+                    style={{ borderRadius: 12 }}
                     onPress={() => onEdit(item)}
                   />
                 )}
@@ -65,7 +79,10 @@ const MobileList = ({
                   <IconButton
                     icon="delete"
                     mode="contained"
-                    iconColor="#d32f2f"
+                    size={20}
+                    containerColor="#d32f2f"
+                    iconColor="#fff"
+                    style={{ borderRadius: 12 }}
                     onPress={() => onDelete(item._id)}
                   />
                 )}

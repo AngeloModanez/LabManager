@@ -18,8 +18,9 @@ import { disciplinasService, cursosService, professoresService } from '../servic
 import MobileInput from '../components/common/MobileInput';
 import MobileSelectRemoto from '../components/common/MobileSelectRemoto';
 import MobileList from '../components/common/MobileList';
+import MobileConfirmDialog from '../components/common/MobileConfirmDialog';
 
-const DisciplinasScreen = () => {
+const DisciplinasScreen = ({ navigation }) => {
   const [disciplinas, setDisciplinas] = useState([]);
   const [cursos, setCursos] = useState([]);
   const [professores, setProfessores] = useState([]);
@@ -30,6 +31,8 @@ const DisciplinasScreen = () => {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [showErrors, setShowErrors] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -81,7 +84,7 @@ const DisciplinasScreen = () => {
       setFormData({
         nome: disciplina.nome || '',
         codigo: disciplina.codigo || '',
-        carga_horaria: disciplina.carga_horaria?.toString() || '',
+        carga_horaria: disciplina.cargaHoraria?.toString() || '',
         cursoId: disciplina.cursoId?._id || disciplina.cursoId || '',
         professorId: disciplina.professorId?._id || disciplina.professorId || '',
         status: disciplina.status !== undefined ? disciplina.status : true,
@@ -115,8 +118,12 @@ const DisciplinasScreen = () => {
 
     try {
       const dataToSend = {
-        ...formData,
-        carga_horaria: parseInt(formData.carga_horaria)
+        nome: formData.nome,
+        codigo: formData.codigo || undefined,
+        cargaHoraria: parseInt(formData.carga_horaria),
+        cursoId: formData.cursoId,
+        professorId: formData.professorId || undefined,
+        status: formData.status
       };
 
       if (editingId) {
@@ -133,27 +140,20 @@ const DisciplinasScreen = () => {
     }
   };
 
-  const removerDisciplina = (id) => {
-    Alert.alert(
-      'Confirmar Remoção',
-      'Tem certeza que deseja remover esta disciplina?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await disciplinasService.remover(id);
-              mostrarSnackbar('Disciplina removida com sucesso');
-              carregarDisciplinas();
-            } catch (error) {
-              mostrarSnackbar(error.message);
-            }
-          },
-        },
-      ]
-    );
+  const confirmarRemocao = (id) => {
+    setDeletingId(id);
+    setConfirmVisible(true);
+  };
+
+  const removerDisciplina = async () => {
+    try {
+      await disciplinasService.remover(deletingId);
+      mostrarSnackbar('Disciplina removida com sucesso');
+      carregarDisciplinas();
+    } catch (error) {
+      mostrarSnackbar(error.message);
+    }
+    setConfirmVisible(false);
   };
 
   const disciplinasFiltradas = disciplinas.filter((disciplina) =>
@@ -173,15 +173,33 @@ const DisciplinasScreen = () => {
     value: prof._id
   }));
 
+  const toggleStatus = async (disciplina) => {
+    try {
+      const novoStatus = !disciplina.status;
+      await disciplinasService.atualizar(disciplina._id, { status: novoStatus });
+      setDisciplinas(prev => 
+        prev.map(disc => 
+          disc._id === disciplina._id 
+            ? { ...disc, status: novoStatus }
+            : disc
+        )
+      );
+      mostrarSnackbar(`Disciplina ${novoStatus ? 'ativada' : 'desativada'} com sucesso`);
+    } catch (error) {
+      mostrarSnackbar('Erro ao alterar status');
+    }
+  };
+
   const renderDisciplinaItem = (disciplina) => (
     <>
       <Title>{disciplina.nome}</Title>
       <Paragraph>Código: {disciplina.codigo || 'N/A'}</Paragraph>
-      <Paragraph>Carga Horária: {disciplina.carga_horaria}h</Paragraph>
+      <Paragraph>Carga Horária: {disciplina.cargaHoraria}h</Paragraph>
       <Paragraph>Curso: {disciplina.cursoId?.nome || 'N/A'}</Paragraph>
       <Paragraph>Professor: {disciplina.professorId?.nome || 'N/A'}</Paragraph>
       <Chip
         mode="outlined"
+        onPress={() => toggleStatus(disciplina)}
         style={{ 
           alignSelf: 'flex-start', 
           marginTop: 8,
@@ -200,17 +218,22 @@ const DisciplinasScreen = () => {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Appbar.Header>
-        <Appbar.Content title="Disciplinas" />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
+
+        <Appbar.Content title="Disciplinas" titleStyle={{ color: '#fff' }} />
       </Appbar.Header>
 
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: 16, paddingBottom: 0 }}>
         <Searchbar
           placeholder="Filtrar disciplinas..."
           onChangeText={setFiltro}
           value={filtro}
-          style={{ marginBottom: 16 }}
+          style={{ 
+            marginBottom: 16,
+            borderRadius: 12,
+            elevation: 2
+          }}
         />
       </View>
 
@@ -218,7 +241,7 @@ const DisciplinasScreen = () => {
         data={disciplinasFiltradas}
         renderItem={renderDisciplinaItem}
         onEdit={abrirDialog}
-        onDelete={removerDisciplina}
+        onDelete={confirmarRemocao}
         emptyMessage="Nenhuma disciplina encontrada"
       />
 
@@ -234,7 +257,11 @@ const DisciplinasScreen = () => {
       />
 
       <Portal>
-        <Dialog visible={dialogVisible} onDismiss={fecharDialog}>
+        <Dialog 
+          visible={dialogVisible} 
+          onDismiss={fecharDialog}
+          style={{ borderRadius: 8 }}
+        >
           <Dialog.Title>
             {editingId ? 'Editar Disciplina' : 'Nova Disciplina'}
           </Dialog.Title>
@@ -288,13 +315,7 @@ const DisciplinasScreen = () => {
                 placeholder="Selecione um professor (opcional)"
               />
 
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <Text>Ativo: </Text>
-                <Switch
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                />
-              </View>
+
             </ScrollView>
           </Dialog.ScrollArea>
           <Dialog.Actions>
@@ -305,6 +326,14 @@ const DisciplinasScreen = () => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      <MobileConfirmDialog
+        visible={confirmVisible}
+        onDismiss={() => setConfirmVisible(false)}
+        onConfirm={removerDisciplina}
+        title="Excluir Disciplina"
+        message="Esta ação não pode ser desfeita. Todos os dados relacionados a esta disciplina serão permanentemente removidos."
+      />
 
       <Snackbar
         visible={snackbarVisible}

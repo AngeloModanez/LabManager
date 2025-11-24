@@ -55,9 +55,15 @@ const MobileSelectRemoto = ({
             disabled={disabled}
             style={{
               justifyContent: 'flex-start',
-              borderColor: hasError ? '#d32f2f' : undefined,
+              borderColor: hasError ? '#d32f2f' : '#ccc',
+              borderRadius: 8,
+              borderWidth: 1,
+              backgroundColor: '#fff'
             }}
-            contentStyle={{ justifyContent: 'flex-start' }}
+            contentStyle={{ 
+              justifyContent: 'flex-start',
+              paddingVertical: 8
+            }}
           >
             <Text style={{ 
               color: selectedOption ? undefined : '#666',

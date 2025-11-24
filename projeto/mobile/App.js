@@ -1,19 +1,16 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { Provider as PaperProvider } from 'react-native-paper';
-import { View } from 'react-native';
 import { BottomNavigation } from 'react-native-paper';
 
+import { theme } from './src/theme/theme';
 import InstituicoesScreen from './src/components/Instituicoes/InstituicoesScreen';
 import CursosScreen from './src/screens/CursosScreen';
 import ProfessoresScreen from './src/screens/ProfessoresScreen';
 import DisciplinasScreen from './src/screens/DisciplinasScreen';
 import LaboratoriosScreen from './src/screens/LaboratoriosScreen';
 import BlocosScreen from './src/screens/BlocosScreen';
-
-const Stack = createStackNavigator();
 
 const MainNavigator = () => {
   const [index, setIndex] = React.useState(0);
@@ -27,12 +24,12 @@ const MainNavigator = () => {
   ]);
 
   const renderScene = BottomNavigation.SceneMap({
-    instituicoes: InstituicoesScreen,
-    cursos: CursosScreen,
-    professores: ProfessoresScreen,
-    disciplinas: DisciplinasScreen,
-    laboratorios: LaboratoriosScreen,
-    blocos: BlocosScreen,
+    instituicoes: () => <InstituicoesScreen navigation={{ goBack: () => {} }} />,
+    cursos: () => <CursosScreen navigation={{ goBack: () => {} }} />,
+    professores: () => <ProfessoresScreen navigation={{ goBack: () => {} }} />,
+    disciplinas: () => <DisciplinasScreen navigation={{ goBack: () => {} }} />,
+    laboratorios: () => <LaboratoriosScreen navigation={{ goBack: () => {} }} />,
+    blocos: () => <BlocosScreen navigation={{ goBack: () => {} }} />,
   });
 
   return (
@@ -42,18 +39,17 @@ const MainNavigator = () => {
       renderScene={renderScene}
       shifting={false}
       sceneAnimationEnabled={false}
+      barStyle={{ backgroundColor: '#fff', elevation: 8 }}
     />
   );
 };
 
 export default function App() {
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme}>
       <NavigationContainer>
-        <View style={{ flex: 1 }}>
-          <MainNavigator />
-          <StatusBar style="auto" />
-        </View>
+        <MainNavigator />
+        <StatusBar style="auto" />
       </NavigationContainer>
     </PaperProvider>
   );

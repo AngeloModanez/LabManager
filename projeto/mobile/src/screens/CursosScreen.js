@@ -18,8 +18,9 @@ import { cursosService, instituicoesService } from '../services/api';
 import MobileInput from '../components/common/MobileInput';
 import MobileSelectRemoto from '../components/common/MobileSelectRemoto';
 import MobileList from '../components/common/MobileList';
+import MobileConfirmDialog from '../components/common/MobileConfirmDialog';
 
-const CursosScreen = () => {
+const CursosScreen = ({ navigation }) => {
   const [cursos, setCursos] = useState([]);
   const [instituicoes, setInstituicoes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -29,6 +30,8 @@ const CursosScreen = () => {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [showErrors, setShowErrors] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -115,27 +118,20 @@ const CursosScreen = () => {
     }
   };
 
-  const removerCurso = (id) => {
-    Alert.alert(
-      'Confirmar Remoção',
-      'Tem certeza que deseja remover este curso?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await cursosService.remover(id);
-              mostrarSnackbar('Curso removido com sucesso');
-              carregarCursos();
-            } catch (error) {
-              mostrarSnackbar(error.message);
-            }
-          },
-        },
-      ]
-    );
+  const confirmarRemocao = (id) => {
+    setDeletingId(id);
+    setConfirmVisible(true);
+  };
+
+  const removerCurso = async () => {
+    try {
+      await cursosService.remover(deletingId);
+      mostrarSnackbar('Curso removido com sucesso');
+      carregarCursos();
+    } catch (error) {
+      mostrarSnackbar(error.message);
+    }
+    setConfirmVisible(false);
   };
 
   const toggleTurno = (turno) => {
@@ -158,6 +154,23 @@ const CursosScreen = () => {
     value: inst._id
   }));
 
+  const toggleStatus = async (curso) => {
+    try {
+      const novoStatus = !curso.status;
+      await cursosService.atualizar(curso._id, { status: novoStatus });
+      setCursos(prev => 
+        prev.map(c => 
+          c._id === curso._id 
+            ? { ...c, status: novoStatus }
+            : c
+        )
+      );
+      mostrarSnackbar(`Curso ${novoStatus ? 'ativado' : 'desativado'} com sucesso`);
+    } catch (error) {
+      mostrarSnackbar('Erro ao alterar status');
+    }
+  };
+
   const renderCursoItem = (curso) => (
     <>
       <Title>{curso.nome}</Title>
@@ -172,6 +185,7 @@ const CursosScreen = () => {
       </View>
       <Chip
         mode="outlined"
+        onPress={() => toggleStatus(curso)}
         style={{ 
           alignSelf: 'flex-start', 
           marginTop: 8,
@@ -189,17 +203,22 @@ const CursosScreen = () => {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Appbar.Header>
-        <Appbar.Content title="Cursos" />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
+
+        <Appbar.Content title="Cursos" titleStyle={{ color: '#fff' }} />
       </Appbar.Header>
 
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: 16, paddingBottom: 0 }}>
         <Searchbar
           placeholder="Filtrar cursos..."
           onChangeText={setFiltro}
           value={filtro}
-          style={{ marginBottom: 16 }}
+          style={{ 
+            marginBottom: 16,
+            borderRadius: 12,
+            elevation: 2
+          }}
         />
       </View>
 
@@ -207,7 +226,7 @@ const CursosScreen = () => {
         data={cursosFiltrados}
         renderItem={renderCursoItem}
         onEdit={abrirDialog}
-        onDelete={removerCurso}
+        onDelete={confirmarRemocao}
         emptyMessage="Nenhum curso encontrado"
       />
 
@@ -223,7 +242,11 @@ const CursosScreen = () => {
       />
 
       <Portal>
-        <Dialog visible={dialogVisible} onDismiss={fecharDialog}>
+        <Dialog 
+          visible={dialogVisible} 
+          onDismiss={fecharDialog}
+          style={{ borderRadius: 8 }}
+        >
           <Dialog.Title>
             {editingId ? 'Editar Curso' : 'Novo Curso'}
           </Dialog.Title>
@@ -256,29 +279,25 @@ const CursosScreen = () => {
                 placeholder="Selecione uma instituição"
               />
 
-              <Text style={{ marginBottom: 8, fontWeight: 'bold' }}>Turnos *</Text>
-              {['Manhã', 'Tarde', 'Noite'].map((turno) => (
-                <View key={turno} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                  <Switch
-                    value={formData.turnos.includes(turno)}
-                    onValueChange={() => toggleTurno(turno)}
-                  />
-                  <Text style={{ marginLeft: 8 }}>{turno}</Text>
-                </View>
-              ))}
+              <Text style={{ marginBottom: 12, fontWeight: 'bold', fontSize: 16 }}>Turnos *</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 16 }}>
+                {['Manhã', 'Tarde', 'Noite'].map((turno) => (
+                  <View key={turno} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Switch
+                      value={formData.turnos.includes(turno)}
+                      onValueChange={() => toggleTurno(turno)}
+                    />
+                    <Text style={{ marginLeft: 8 }}>{turno}</Text>
+                  </View>
+                ))}
+              </View>
               {showErrors && formData.turnos.length === 0 && (
                 <Text style={{ color: '#d32f2f', fontSize: 12, marginBottom: 12 }}>
                   Selecione pelo menos um turno
                 </Text>
               )}
 
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <Text>Ativo: </Text>
-                <Switch
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                />
-              </View>
+
             </ScrollView>
           </Dialog.ScrollArea>
           <Dialog.Actions>
@@ -289,6 +308,14 @@ const CursosScreen = () => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      <MobileConfirmDialog
+        visible={confirmVisible}
+        onDismiss={() => setConfirmVisible(false)}
+        onConfirm={removerCurso}
+        title="Excluir Curso"
+        message="Esta ação não pode ser desfeita. Todos os dados relacionados a este curso serão permanentemente removidos."
+      />
 
       <Snackbar
         visible={snackbarVisible}

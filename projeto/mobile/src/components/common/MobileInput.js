@@ -45,6 +45,16 @@ const MobileInput = ({
         ? masks[mask](newValue) 
         : masks[mask];
       newValue = applyMask(newValue, maskPattern);
+      
+      if (mask === 'hora') {
+        const [hora, minuto] = newValue.split(':');
+        if (hora && parseInt(hora) > 23) {
+          newValue = '23:' + (minuto || '');
+        }
+        if (minuto && parseInt(minuto) > 59) {
+          newValue = (hora || '') + ':59';
+        }
+      }
     }
     
     onChangeText(newValue);
@@ -95,7 +105,18 @@ const MobileInput = ({
         keyboardType={keyboardType}
         multiline={multiline}
         numberOfLines={numberOfLines}
-        style={{ marginBottom: hasError ? 4 : 12 }}
+        style={{ 
+          marginBottom: hasError ? 4 : 16,
+          backgroundColor: '#fff'
+        }}
+        contentStyle={{
+          borderRadius: 12
+        }}
+        outlineStyle={{
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: '#ccc'
+        }}
         {...props}
       />
       {hasError && (

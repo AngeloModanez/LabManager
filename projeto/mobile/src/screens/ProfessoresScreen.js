@@ -17,8 +17,9 @@ import {
 import { professoresService } from '../services/api';
 import MobileInput from '../components/common/MobileInput';
 import MobileList from '../components/common/MobileList';
+import MobileConfirmDialog from '../components/common/MobileConfirmDialog';
 
-const ProfessoresScreen = () => {
+const ProfessoresScreen = ({ navigation }) => {
   const [professores, setProfessores] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
@@ -27,6 +28,8 @@ const ProfessoresScreen = () => {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [showErrors, setShowErrors] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -101,27 +104,20 @@ const ProfessoresScreen = () => {
     }
   };
 
-  const removerProfessor = (id) => {
-    Alert.alert(
-      'Confirmar Remoção',
-      'Tem certeza que deseja remover este professor?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await professoresService.remover(id);
-              mostrarSnackbar('Professor removido com sucesso');
-              carregarProfessores();
-            } catch (error) {
-              mostrarSnackbar(error.message);
-            }
-          },
-        },
-      ]
-    );
+  const confirmarRemocao = (id) => {
+    setDeletingId(id);
+    setConfirmVisible(true);
+  };
+
+  const removerProfessor = async () => {
+    try {
+      await professoresService.remover(deletingId);
+      mostrarSnackbar('Professor removido com sucesso');
+      carregarProfessores();
+    } catch (error) {
+      mostrarSnackbar(error.message);
+    }
+    setConfirmVisible(false);
   };
 
   const professoresFiltrados = professores.filter((professor) =>
@@ -130,6 +126,23 @@ const ProfessoresScreen = () => {
     )
   );
 
+  const toggleStatus = async (professor) => {
+    try {
+      const novoStatus = !professor.status;
+      await professoresService.atualizar(professor._id, { status: novoStatus });
+      setProfessores(prev => 
+        prev.map(prof => 
+          prof._id === professor._id 
+            ? { ...prof, status: novoStatus }
+            : prof
+        )
+      );
+      mostrarSnackbar(`Professor ${novoStatus ? 'ativado' : 'desativado'} com sucesso`);
+    } catch (error) {
+      mostrarSnackbar('Erro ao alterar status');
+    }
+  };
+
   const renderProfessorItem = (professor) => (
     <>
       <Title>{professor.nome}</Title>
@@ -137,6 +150,7 @@ const ProfessoresScreen = () => {
       <Paragraph>Telefone: {professor.telefone || 'N/A'}</Paragraph>
       <Chip
         mode="outlined"
+        onPress={() => toggleStatus(professor)}
         style={{ 
           alignSelf: 'flex-start', 
           marginTop: 8,
@@ -153,17 +167,22 @@ const ProfessoresScreen = () => {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Appbar.Header>
-        <Appbar.Content title="Professores" />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
+
+        <Appbar.Content title="Professores" titleStyle={{ color: '#fff' }} />
       </Appbar.Header>
 
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: 16, paddingBottom: 0 }}>
         <Searchbar
           placeholder="Filtrar professores..."
           onChangeText={setFiltro}
           value={filtro}
-          style={{ marginBottom: 16 }}
+          style={{ 
+            marginBottom: 16,
+            borderRadius: 12,
+            elevation: 2
+          }}
         />
       </View>
 
@@ -171,7 +190,7 @@ const ProfessoresScreen = () => {
         data={professoresFiltrados}
         renderItem={renderProfessorItem}
         onEdit={abrirDialog}
-        onDelete={removerProfessor}
+        onDelete={confirmarRemocao}
         emptyMessage="Nenhum professor encontrado"
       />
 
@@ -187,7 +206,11 @@ const ProfessoresScreen = () => {
       />
 
       <Portal>
-        <Dialog visible={dialogVisible} onDismiss={fecharDialog}>
+        <Dialog 
+          visible={dialogVisible} 
+          onDismiss={fecharDialog}
+          style={{ borderRadius: 8 }}
+        >
           <Dialog.Title>
             {editingId ? 'Editar Professor' : 'Novo Professor'}
           </Dialog.Title>
@@ -221,13 +244,7 @@ const ProfessoresScreen = () => {
                 keyboardType="phone-pad"
               />
 
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <Text>Ativo: </Text>
-                <Switch
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                />
-              </View>
+
             </ScrollView>
           </Dialog.ScrollArea>
           <Dialog.Actions>
@@ -238,6 +255,14 @@ const ProfessoresScreen = () => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      <MobileConfirmDialog
+        visible={confirmVisible}
+        onDismiss={() => setConfirmVisible(false)}
+        onConfirm={removerProfessor}
+        title="Excluir Professor"
+        message="Esta ação não pode ser desfeita. Todos os dados relacionados a este professor serão permanentemente removidos."
+      />
 
       <Snackbar
         visible={snackbarVisible}

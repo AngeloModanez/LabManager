@@ -30,6 +30,7 @@ export const masks = {
     }
     return '(99) 99999-9999';
   },
+  hora: '99:99',
 };
 
 export const validateCNPJ = (cnpj) => {

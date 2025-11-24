@@ -19,8 +19,9 @@ import { blocosService } from '../services/api';
 import MobileInput from '../components/common/MobileInput';
 import MobileSelectRemoto from '../components/common/MobileSelectRemoto';
 import MobileList from '../components/common/MobileList';
+import MobileConfirmDialog from '../components/common/MobileConfirmDialog';
 
-const BlocosScreen = () => {
+const BlocosScreen = ({ navigation }) => {
   const [blocos, setBlocos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
@@ -30,6 +31,8 @@ const BlocosScreen = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [showErrors, setShowErrors] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   
   const [formData, setFormData] = useState({
     turno: '',
@@ -186,27 +189,20 @@ const BlocosScreen = () => {
     }
   };
 
-  const removerBloco = (id) => {
-    Alert.alert(
-      'Confirmar Remoção',
-      'Tem certeza que deseja remover este bloco?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await blocosService.remover(id);
-              mostrarSnackbar('Bloco removido com sucesso');
-              carregarBlocos();
-            } catch (error) {
-              mostrarSnackbar(error.message);
-            }
-          },
-        },
-      ]
-    );
+  const confirmarRemocao = (id) => {
+    setDeletingId(id);
+    setConfirmVisible(true);
+  };
+
+  const removerBloco = async () => {
+    try {
+      await blocosService.remover(deletingId);
+      mostrarSnackbar('Bloco removido com sucesso');
+      carregarBlocos();
+    } catch (error) {
+      mostrarSnackbar(error.message);
+    }
+    setConfirmVisible(false);
   };
 
   const blocosFiltrados = blocos.filter((bloco) =>
@@ -230,6 +226,23 @@ const BlocosScreen = () => {
     { label: 'Sábado', value: 'Sábado' },
   ];
 
+  const toggleStatus = async (bloco) => {
+    try {
+      const novoStatus = !bloco.status;
+      await blocosService.atualizar(bloco._id, { status: novoStatus });
+      setBlocos(prev => 
+        prev.map(b => 
+          b._id === bloco._id 
+            ? { ...b, status: novoStatus }
+            : b
+        )
+      );
+      mostrarSnackbar(`Bloco ${novoStatus ? 'ativado' : 'desativado'} com sucesso`);
+    } catch (error) {
+      mostrarSnackbar('Erro ao alterar status');
+    }
+  };
+
   const renderBlocoItem = (bloco) => (
     <>
       <Title>{bloco.turno} - {bloco.dia_da_semana}</Title>
@@ -237,6 +250,7 @@ const BlocosScreen = () => {
       <Paragraph>Ordem: {bloco.ordem}º</Paragraph>
       <Chip
         mode="outlined"
+        onPress={() => toggleStatus(bloco)}
         style={{ 
           alignSelf: 'flex-start', 
           marginTop: 8,
@@ -253,17 +267,22 @@ const BlocosScreen = () => {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Appbar.Header>
-        <Appbar.Content title="Blocos de Aulas" />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} color="#fff" />
+        <Appbar.Content title="Blocos de Aulas" titleStyle={{ color: '#fff' }} />
       </Appbar.Header>
 
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: 16, paddingBottom: 0 }}>
         <Searchbar
           placeholder="Filtrar blocos..."
           onChangeText={setFiltro}
           value={filtro}
-          style={{ marginBottom: 16 }}
+          style={{ 
+            marginBottom: 16,
+            borderRadius: 12,
+            elevation: 2
+          }}
         />
       </View>
 
@@ -271,7 +290,7 @@ const BlocosScreen = () => {
         data={blocosFiltrados}
         renderItem={renderBlocoItem}
         onEdit={abrirDialog}
-        onDelete={removerBloco}
+        onDelete={confirmarRemocao}
         emptyMessage="Nenhum bloco encontrado"
       />
 
@@ -287,7 +306,11 @@ const BlocosScreen = () => {
       />
 
       <Portal>
-        <Dialog visible={dialogVisible} onDismiss={fecharDialog}>
+        <Dialog 
+          visible={dialogVisible} 
+          onDismiss={fecharDialog}
+          style={{ borderRadius: 8 }}
+        >
           <Dialog.Title>
             {editingId ? 'Editar Bloco' : 'Novo Bloco'}
           </Dialog.Title>
@@ -318,6 +341,7 @@ const BlocosScreen = () => {
                   label="Horário de Início *"
                   value={formData.inicio}
                   onChangeText={(text) => setFormData({ ...formData, inicio: text })}
+                  mask="hora"
                   required
                   forceShowError={showErrors}
                 />
@@ -333,6 +357,7 @@ const BlocosScreen = () => {
                   label="Horário de Fim *"
                   value={formData.fim}
                   onChangeText={(text) => setFormData({ ...formData, fim: text })}
+                  mask="hora"
                   required
                   forceShowError={showErrors}
                 />
@@ -356,13 +381,7 @@ const BlocosScreen = () => {
                 forceShowError={showErrors}
               />
 
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <Text>Ativo: </Text>
-                <Switch
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                />
-              </View>
+
             </ScrollView>
           </Dialog.ScrollArea>
           <Dialog.Actions>
@@ -373,6 +392,14 @@ const BlocosScreen = () => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      <MobileConfirmDialog
+        visible={confirmVisible}
+        onDismiss={() => setConfirmVisible(false)}
+        onConfirm={removerBloco}
+        title="Excluir Bloco"
+        message="Esta ação não pode ser desfeita. Todos os dados relacionados a este bloco serão permanentemente removidos."
+      />
 
       <Snackbar
         visible={snackbarVisible}

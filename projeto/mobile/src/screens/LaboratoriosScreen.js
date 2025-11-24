@@ -14,14 +14,14 @@ import {
   Paragraph,
   Chip,
 } from 'react-native-paper';
-import { laboratoriosService, instituicoesService } from '../services/api';
+import { laboratoriosService } from '../services/api';
 import MobileInput from '../components/common/MobileInput';
 import MobileSelectRemoto from '../components/common/MobileSelectRemoto';
 import MobileList from '../components/common/MobileList';
+import MobileConfirmDialog from '../components/common/MobileConfirmDialog';
 
-const LaboratoriosScreen = () => {
+const LaboratoriosScreen = ({ navigation }) => {
   const [laboratorios, setLaboratorios] = useState([]);
-  const [instituicoes, setInstituicoes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -29,13 +29,13 @@ const LaboratoriosScreen = () => {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [showErrors, setShowErrors] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   
   const [formData, setFormData] = useState({
     nome: '',
-    codigo: '',
     capacidade: '',
-    tipo: '',
-    instituicaoId: '',
+    localizacao: '',
     status: true,
   });
 
@@ -51,14 +51,7 @@ const LaboratoriosScreen = () => {
     }
   };
 
-  const carregarInstituicoes = async () => {
-    try {
-      const response = await instituicoesService.listar();
-      setInstituicoes(response.data.data || response.data);
-    } catch (error) {
-      mostrarSnackbar('Erro ao carregar instituições');
-    }
-  };
+
 
   const mostrarSnackbar = (message) => {
     setSnackbarMessage(message);
@@ -70,20 +63,16 @@ const LaboratoriosScreen = () => {
       setEditingId(laboratorio._id);
       setFormData({
         nome: laboratorio.nome || '',
-        codigo: laboratorio.codigo || '',
         capacidade: laboratorio.capacidade?.toString() || '',
-        tipo: laboratorio.tipo || '',
-        instituicaoId: laboratorio.instituicaoId?._id || laboratorio.instituicaoId || '',
+        localizacao: laboratorio.localizacao || '',
         status: laboratorio.status !== undefined ? laboratorio.status : true,
       });
     } else {
       setEditingId(null);
       setFormData({
         nome: '',
-        codigo: '',
         capacidade: '',
-        tipo: '',
-        instituicaoId: '',
+        localizacao: '',
         status: true,
       });
     }
@@ -98,7 +87,7 @@ const LaboratoriosScreen = () => {
   };
 
   const salvarLaboratorio = async () => {
-    if (!formData.nome || !formData.capacidade || !formData.tipo || !formData.instituicaoId) {
+    if (!formData.nome || !formData.capacidade) {
       setShowErrors(true);
       return;
     }
@@ -123,61 +112,55 @@ const LaboratoriosScreen = () => {
     }
   };
 
-  const removerLaboratorio = (id) => {
-    Alert.alert(
-      'Confirmar Remoção',
-      'Tem certeza que deseja remover este laboratório?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await laboratoriosService.remover(id);
-              mostrarSnackbar('Laboratório removido com sucesso');
-              carregarLaboratorios();
-            } catch (error) {
-              mostrarSnackbar(error.message);
-            }
-          },
-        },
-      ]
-    );
+  const confirmarRemocao = (id) => {
+    setDeletingId(id);
+    setConfirmVisible(true);
+  };
+
+  const removerLaboratorio = async () => {
+    try {
+      await laboratoriosService.remover(deletingId);
+      mostrarSnackbar('Laboratório removido com sucesso');
+      carregarLaboratorios();
+    } catch (error) {
+      mostrarSnackbar(error.message);
+    }
+    setConfirmVisible(false);
   };
 
   const laboratoriosFiltrados = laboratorios.filter((laboratorio) =>
-    ['nome', 'codigo', 'tipo'].some(field =>
+    ['nome', 'localizacao'].some(field =>
       laboratorio[field]?.toLowerCase().includes(filtro.toLowerCase())
-    ) || laboratorio.instituicaoId?.nome?.toLowerCase().includes(filtro.toLowerCase()) ||
-    laboratorio.capacidade?.toString().includes(filtro)
+    ) || laboratorio.capacidade?.toString().includes(filtro)
   );
 
-  const instituicoesOptions = instituicoes.map(inst => ({
-    label: `${inst.nome}${!inst.status ? ' (Inativa)' : ''}`,
-    value: inst._id
-  }));
 
-  const tiposOptions = [
-    { label: 'Informática', value: 'Informática' },
-    { label: 'Química', value: 'Química' },
-    { label: 'Física', value: 'Física' },
-    { label: 'Biologia', value: 'Biologia' },
-    { label: 'Eletrônica', value: 'Eletrônica' },
-    { label: 'Mecânica', value: 'Mecânica' },
-    { label: 'Multimídia', value: 'Multimídia' },
-    { label: 'Outro', value: 'Outro' },
-  ];
+
+  const toggleStatus = async (laboratorio) => {
+    try {
+      const novoStatus = !laboratorio.status;
+      await laboratoriosService.atualizar(laboratorio._id, { status: novoStatus });
+      setLaboratorios(prev => 
+        prev.map(lab => 
+          lab._id === laboratorio._id 
+            ? { ...lab, status: novoStatus }
+            : lab
+        )
+      );
+      mostrarSnackbar(`Laboratório ${novoStatus ? 'ativado' : 'desativado'} com sucesso`);
+    } catch (error) {
+      mostrarSnackbar('Erro ao alterar status');
+    }
+  };
 
   const renderLaboratorioItem = (laboratorio) => (
     <>
       <Title>{laboratorio.nome}</Title>
-      <Paragraph>Código: {laboratorio.codigo || 'N/A'}</Paragraph>
-      <Paragraph>Tipo: {laboratorio.tipo}</Paragraph>
       <Paragraph>Capacidade: {laboratorio.capacidade} pessoas</Paragraph>
-      <Paragraph>Instituição: {laboratorio.instituicaoId?.nome || 'N/A'}</Paragraph>
+      <Paragraph>Localização: {laboratorio.localizacao || 'N/A'}</Paragraph>
       <Chip
         mode="outlined"
+        onPress={() => toggleStatus(laboratorio)}
         style={{ 
           alignSelf: 'flex-start', 
           marginTop: 8,
@@ -191,21 +174,25 @@ const LaboratoriosScreen = () => {
 
   useEffect(() => {
     carregarLaboratorios();
-    carregarInstituicoes();
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Appbar.Header>
-        <Appbar.Content title="Laboratórios" />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} color="#fff" />
+        <Appbar.Content title="Laboratórios" titleStyle={{ color: '#fff' }} />
       </Appbar.Header>
 
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: 16, paddingBottom: 0 }}>
         <Searchbar
           placeholder="Filtrar laboratórios..."
           onChangeText={setFiltro}
           value={filtro}
-          style={{ marginBottom: 16 }}
+          style={{ 
+            marginBottom: 16,
+            borderRadius: 12,
+            elevation: 2
+          }}
         />
       </View>
 
@@ -213,7 +200,7 @@ const LaboratoriosScreen = () => {
         data={laboratoriosFiltrados}
         renderItem={renderLaboratorioItem}
         onEdit={abrirDialog}
-        onDelete={removerLaboratorio}
+        onDelete={confirmarRemocao}
         emptyMessage="Nenhum laboratório encontrado"
       />
 
@@ -229,7 +216,11 @@ const LaboratoriosScreen = () => {
       />
 
       <Portal>
-        <Dialog visible={dialogVisible} onDismiss={fecharDialog}>
+        <Dialog 
+          visible={dialogVisible} 
+          onDismiss={fecharDialog}
+          style={{ borderRadius: 8 }}
+        >
           <Dialog.Title>
             {editingId ? 'Editar Laboratório' : 'Novo Laboratório'}
           </Dialog.Title>
@@ -246,13 +237,6 @@ const LaboratoriosScreen = () => {
               />
               
               <MobileInput
-                label="Código"
-                value={formData.codigo}
-                onChangeText={(text) => setFormData({ ...formData, codigo: text })}
-                maxLength={20}
-              />
-              
-              <MobileInput
                 label="Capacidade *"
                 value={formData.capacidade}
                 onChangeText={(text) => {
@@ -264,34 +248,15 @@ const LaboratoriosScreen = () => {
                 required
                 forceShowError={showErrors}
               />
-
-              <MobileSelectRemoto
-                label="Tipo"
-                value={formData.tipo}
-                onValueChange={(value) => setFormData({ ...formData, tipo: value })}
-                options={tiposOptions}
-                required
-                forceShowError={showErrors}
-                placeholder="Selecione o tipo"
+              
+              <MobileInput
+                label="Localização"
+                value={formData.localizacao}
+                onChangeText={(text) => setFormData({ ...formData, localizacao: text })}
+                maxLength={200}
               />
 
-              <MobileSelectRemoto
-                label="Instituição"
-                value={formData.instituicaoId}
-                onValueChange={(value) => setFormData({ ...formData, instituicaoId: value })}
-                options={instituicoesOptions}
-                required
-                forceShowError={showErrors}
-                placeholder="Selecione uma instituição"
-              />
 
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <Text>Ativo: </Text>
-                <Switch
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                />
-              </View>
             </ScrollView>
           </Dialog.ScrollArea>
           <Dialog.Actions>
@@ -302,6 +267,14 @@ const LaboratoriosScreen = () => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      <MobileConfirmDialog
+        visible={confirmVisible}
+        onDismiss={() => setConfirmVisible(false)}
+        onConfirm={removerLaboratorio}
+        title="Excluir Laboratório"
+        message="Esta ação não pode ser desfeita. Todos os dados relacionados a este laboratório serão permanentemente removidos."
+      />
 
       <Snackbar
         visible={snackbarVisible}
