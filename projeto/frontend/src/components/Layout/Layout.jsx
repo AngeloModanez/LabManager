@@ -7,38 +7,26 @@ import {
   Box,
   Container,
   Paper,
+  useTheme,
 } from '@mui/material';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import Menu from '../Menu/Menu';
 
-/**
- * Componente de layout principal da aplicação
- * @component
- * @param {Object} props - Props do componente
- * @param {React.ReactNode} props.children - Conteúdo filho
- * @returns {JSX.Element} Componente de layout
- */
-const Layout = ({ children }) => {
+const Layout = ({ children, title = 'Sistema de Laboratórios - PM2025-2' }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const theme = useTheme();
 
-  /**
-   * Abre o menu lateral
-   */
   const handleMenuOpen = () => {
     setMenuOpen(true);
   };
 
-  /**
-   * Fecha o menu lateral
-   */
   const handleMenuClose = () => {
     setMenuOpen(false);
   };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Cabeçalho */}
-      <AppBar position="static" sx={{ backgroundColor: '#1976d2' }}>
+      <AppBar position="static" sx={{ backgroundColor: theme.palette.primary.main }}>
         <Toolbar>
           <IconButton
             edge="start"
@@ -50,15 +38,13 @@ const Layout = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Sistema de Laboratórios - PM2025-2
+            {title}
           </Typography>
         </Toolbar>
       </AppBar>
 
-      {/* Menu Lateral */}
       <Menu open={menuOpen} onClose={handleMenuClose} />
 
-      {/* Área de Trabalho */}
       <Container 
         component="main" 
         maxWidth="xl" 
@@ -81,15 +67,14 @@ const Layout = ({ children }) => {
         </Paper>
       </Container>
 
-      {/* Rodapé */}
       <Box
         component="footer"
         sx={{
           py: 2,
           px: 2,
           mt: 'auto',
-          backgroundColor: '#f5f5f5',
-          borderTop: '1px solid #e0e0e0'
+          backgroundColor: theme.palette.grey[100],
+          borderTop: `1px solid ${theme.palette.divider}`,
         }}
       >
         <Container maxWidth="xl">

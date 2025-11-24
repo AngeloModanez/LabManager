@@ -17,12 +17,12 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Layout>
-        <Box sx={{ p: 2 }}>
-          <Typography variant="h4">
+        <Box sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="h3" gutterBottom>
             Sistema de Laboratórios
           </Typography>
-          <Typography variant="body1">
-            Use o menu lateral para navegar.
+          <Typography variant="h6" color="text.secondary">
+            Use o menu lateral para navegar entre os módulos.
           </Typography>
         </Box>
       </Layout>
