@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Drawer,
   List,
@@ -17,12 +17,14 @@ import {
   Business as BusinessIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
-import Instituicoes from '../Instituicoes/Instituicoes';
+import InstituicoesPage from '../../pages/Instituicoes/InstituicoesPage';
 
 const Menu = ({ open, onClose }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState(null);
   const [modalTitle, setModalTitle] = useState('');
+
+  const instituicoesComponent = useMemo(() => <InstituicoesPage />, []);
 
   const handleOpenModal = (title, content) => {
     setModalTitle(title);
@@ -38,14 +40,14 @@ const Menu = ({ open, onClose }) => {
   };
 
   const handleInstituicoesClick = () => {
-    handleOpenModal('Gerenciar Instituições', <Instituicoes />);
+    handleOpenModal('Gerenciar Instituições', instituicoesComponent);
   };
 
   return (
     <>
       <Drawer anchor="left" open={open} onClose={onClose}>
         <Box sx={{ width: 280 }}>
-          <Box sx={{ p: 2, backgroundColor: '#1976d2', color: 'white' }}>
+          <Box sx={{ p: 2, backgroundColor: 'primary.main', color: 'white' }}>
             <Typography variant="h6">
               Menu Principal
             </Typography>
@@ -91,7 +93,8 @@ const Menu = ({ open, onClose }) => {
               justifyContent: 'space-between',
               alignItems: 'center',
               p: 2,
-              borderBottom: '1px solid #e0e0e0',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
             }}
           >
             <Typography variant="h6">
@@ -106,7 +109,7 @@ const Menu = ({ open, onClose }) => {
             {modalContent}
           </Box>
 
-          <Box sx={{ p: 2, borderTop: '1px solid #e0e0e0' }}>
+          <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
             <Button onClick={handleCloseModal} variant="contained">
               Fechar
             </Button>

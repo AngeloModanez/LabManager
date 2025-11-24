@@ -1,16 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
-  Button,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
-  Snackbar,
-  Alert,
-  Typography,
   Paper,
   Table,
   TableBody,
@@ -18,25 +8,37 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  IconButton,
+  Typography,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Search as SearchIcon,
 } from '@mui/icons-material';
+
+import Button from '../../components/common/Button/Button';
+import SearchBar from '../../components/common/SearchBar/SearchBar';
+import Modal from '../../components/common/Modal/Modal';
+import Input from '../../components/common/Input/Input';
+import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
 import { instituicoesService } from '../../services/api';
 
-const Instituicoes = () => {
+const InstituicoesPage = () => {
   const [instituicoes, setInstituicoes] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [filtro, setFiltro] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   
   const [formData, setFormData] = useState({
     nome: '',
+    sigla: '',
     cnpj: '',
     email: '',
     telefone: '',
@@ -44,28 +46,28 @@ const Instituicoes = () => {
     ativo: true,
   });
 
-  const carregarInstituicoes = async () => {
+  const carregarInstituicoes = useCallback(async () => {
     setLoading(true);
     try {
       const response = await instituicoesService.listar();
-      setInstituicoes(response.data);
+      setInstituicoes(response.data.data || response.data);
     } catch (error) {
-      console.error('Erro ao carregar:', error);
       mostrarSnackbar('Erro ao carregar instituições', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const mostrarSnackbar = (message, severity = 'success') => {
+  const mostrarSnackbar = useCallback((message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
-  };
+  }, []);
 
-  const abrirDialog = (instituicao = null) => {
+  const abrirModal = useCallback((instituicao = null) => {
     if (instituicao) {
       setEditingId(instituicao._id);
       setFormData({
         nome: instituicao.nome || '',
+        sigla: instituicao.sigla || '',
         cnpj: instituicao.cnpj || '',
         email: instituicao.email || '',
         telefone: instituicao.telefone || '',
@@ -76,6 +78,7 @@ const Instituicoes = () => {
       setEditingId(null);
       setFormData({
         nome: '',
+        sigla: '',
         cnpj: '',
         email: '',
         telefone: '',
@@ -83,13 +86,13 @@ const Instituicoes = () => {
         ativo: true,
       });
     }
-    setDialogOpen(true);
-  };
+    setModalOpen(true);
+  }, []);
 
-  const fecharDialog = () => {
-    setDialogOpen(false);
+  const fecharModal = useCallback(() => {
+    setModalOpen(false);
     setEditingId(null);
-  };
+  }, []);
 
   const salvarInstituicao = async () => {
     try {
@@ -100,7 +103,7 @@ const Instituicoes = () => {
         await instituicoesService.criar(formData);
         mostrarSnackbar('Instituição criada com sucesso');
       }
-      fecharDialog();
+      fecharModal();
       carregarInstituicoes();
     } catch (error) {
       const message = error.response?.data?.message || 'Erro ao salvar instituição';
@@ -108,50 +111,65 @@ const Instituicoes = () => {
     }
   };
 
-  const removerInstituicao = async (id) => {
-    if (window.confirm('Tem certeza que deseja remover esta instituição?')) {
-      try {
-        await instituicoesService.remover(id);
-        mostrarSnackbar('Instituição removida com sucesso');
-        carregarInstituicoes();
-      } catch (error) {
-        const message = error.response?.data?.message || 'Erro ao remover instituição';
-        mostrarSnackbar(message, 'error');
-      }
+  const confirmarRemocao = useCallback((id) => {
+    setDeletingId(id);
+    setConfirmOpen(true);
+  }, []);
+
+  const removerInstituicao = async () => {
+    try {
+      await instituicoesService.remover(deletingId);
+      mostrarSnackbar('Instituição removida com sucesso');
+      carregarInstituicoes();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Erro ao remover instituição';
+      mostrarSnackbar(message, 'error');
     }
   };
 
+  const handleFormChange = useCallback((field) => (event) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  }, []);
+
   const instituicoesFiltradas = instituicoes.filter((instituicao) =>
-    Object.values(instituicao).some((value) =>
-      String(value).toLowerCase().includes(filtro.toLowerCase())
+    ['nome', 'cnpj', 'email'].some(field =>
+      instituicao[field]?.toLowerCase().includes(filtro.toLowerCase())
     )
   );
 
   useEffect(() => {
     carregarInstituicoes();
-  }, []);
+  }, [carregarInstituicoes]);
+
+  const modalActions = (
+    <>
+      <Button onClick={fecharModal} variant="outlined">
+        Cancelar
+      </Button>
+      <Button onClick={salvarInstituicao}>
+        {editingId ? 'Atualizar' : 'Criar'}
+      </Button>
+    </>
+  );
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Paper sx={{ p: 2, mb: 2 }}>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           <Button
-            variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => abrirDialog()}
+            onClick={() => abrirModal()}
           >
             Nova Instituição
           </Button>
           
-          <TextField
-            size="small"
-            placeholder="Filtrar instituições..."
+          <SearchBar
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-            }}
-            sx={{ minWidth: 250 }}
+            placeholder="Filtrar instituições..."
           />
         </Box>
       </Paper>
@@ -161,6 +179,7 @@ const Instituicoes = () => {
           <TableHead>
             <TableRow>
               <TableCell>Nome</TableCell>
+              <TableCell>Sigla</TableCell>
               <TableCell>CNPJ</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Status</TableCell>
@@ -171,6 +190,7 @@ const Instituicoes = () => {
             {instituicoesFiltradas.map((instituicao) => (
               <TableRow key={instituicao._id}>
                 <TableCell>{instituicao.nome}</TableCell>
+                <TableCell>{instituicao.sigla}</TableCell>
                 <TableCell>{instituicao.cnpj}</TableCell>
                 <TableCell>{instituicao.email}</TableCell>
                 <TableCell>
@@ -181,14 +201,14 @@ const Instituicoes = () => {
                 <TableCell>
                   <IconButton
                     size="small"
-                    onClick={() => abrirDialog(instituicao)}
+                    onClick={() => abrirModal(instituicao)}
                     color="primary"
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton
                     size="small"
-                    onClick={() => removerInstituicao(instituicao._id)}
+                    onClick={() => confirmarRemocao(instituicao._id)}
                     color="error"
                   >
                     <DeleteIcon />
@@ -200,56 +220,65 @@ const Instituicoes = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={dialogOpen} onClose={fecharDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {editingId ? 'Editar Instituição' : 'Nova Instituição'}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-            <TextField
-              label="Nome *"
-              value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-              fullWidth
-              required
-            />
-            <TextField
-              label="CNPJ *"
-              value={formData.cnpj}
-              onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Telefone"
-              value={formData.telefone}
-              onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Endereço"
-              value={formData.endereco}
-              onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
-              fullWidth
-              multiline
-              rows={2}
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={fecharDialog}>Cancelar</Button>
-          <Button onClick={salvarInstituicao} variant="contained">
-            {editingId ? 'Atualizar' : 'Criar'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Modal
+        open={modalOpen}
+        onClose={fecharModal}
+        title={editingId ? 'Editar Instituição' : 'Nova Instituição'}
+        actions={modalActions}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+          <Input
+            label="Nome *"
+            value={formData.nome}
+            onChange={handleFormChange('nome')}
+            required
+            maxLength={100}
+          />
+          <Input
+            label="Sigla *"
+            value={formData.sigla}
+            onChange={handleFormChange('sigla')}
+            required
+            maxLength={10}
+          />
+          <Input
+            label="CNPJ *"
+            value={formData.cnpj}
+            onChange={handleFormChange('cnpj')}
+            mask="cnpj"
+            required
+          />
+          <Input
+            label="Email"
+            type="email"
+            value={formData.email}
+            onChange={handleFormChange('email')}
+          />
+          <Input
+            label="Telefone"
+            value={formData.telefone}
+            onChange={handleFormChange('telefone')}
+            mask="telefone"
+          />
+          <Input
+            label="Endereço"
+            value={formData.endereco}
+            onChange={handleFormChange('endereco')}
+            multiline
+            rows={2}
+            maxLength={200}
+          />
+        </Box>
+      </Modal>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={removerInstituicao}
+        title="Remover Instituição"
+        message="Tem certeza que deseja remover esta instituição?"
+        confirmText="Remover"
+      />
 
       <Snackbar
         open={snackbar.open}
@@ -268,4 +297,4 @@ const Instituicoes = () => {
   );
 };
 
-export default Instituicoes;
+export default InstituicoesPage;
