@@ -2,8 +2,9 @@ import axios from 'axios';
 
 /**
  * Configuração da API para mobile
+ * Usa variável de ambiente ou fallback para localhost
  */
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

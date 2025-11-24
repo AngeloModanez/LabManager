@@ -1,0 +1,88 @@
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:7
+    container_name: labmanager-mongodb
+    restart: unless-stopped
+    command: ["mongod", "--auth", "--bind_ip_all"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: secret123
+      MONGO_INITDB_DATABASE: labmanager
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - labmanager-network
+
+  # Backend API
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.dev
+    container_name: labmanager-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGO_INITDB_HOST=mongodb
+      - MONGO_INITDB_PORT=27017
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=secret123
+      - MONGO_INITDB_DATABASE=labmanager
+      - CORS_ORIGIN=*
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../backend/src:/app/src
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - labmanager-network
+
+  # Frontend Web
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    container_name: labmanager-frontend
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=http://localhost:3000/api/v1
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../frontend/src:/app/src
+      - ../frontend/public:/app/public
+    depends_on:
+      - backend
+    networks:
+      - labmanager-network
+
+  # Portainer (Gerenciamento Docker)
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: labmanager-portainer
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - labmanager-network
+
+volumes:
+  mongodb_data:
+  portainer_data:
+
+networks:
+  labmanager-network:
+    driver: bridge
