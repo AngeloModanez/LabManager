@@ -32,11 +32,11 @@ const criarInstituicao = async (req, res, next) => {
  */
 const listarInstituicoes = async (req, res, next) => {
   try {
-    const { ativo, nome, page = 1, limit = 20 } = req.query;
+    const { status, nome, page = 1, limit = 20 } = req.query;
     const filter = {};
 
-    if (ativo !== undefined) {
-      filter.ativo = ativo === 'true';
+    if (status !== undefined) {
+      filter.status = status === 'true';
     }
 
     if (nome) {

@@ -13,6 +13,12 @@ import {
   Snackbar,
   Alert,
   Switch,
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  OutlinedInput,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -25,9 +31,10 @@ import SearchBar from '../../components/common/SearchBar/SearchBar';
 import Modal from '../../components/common/Modal/Modal';
 import Input from '../../components/common/Input/Input';
 import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
-import { instituicoesService } from '../../services/api';
+import { cursosService, instituicoesService } from '../../services/api';
 
-const InstituicoesPage = () => {
+const CursosPage = () => {
+  const [cursos, setCursos] = useState([]);
   const [instituicoes, setInstituicoes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -40,23 +47,30 @@ const InstituicoesPage = () => {
   
   const [formData, setFormData] = useState({
     nome: '',
-    sigla: '',
-    cnpj: '',
-    email: '',
-    telefone: '',
-    endereco: '',
+    codigo: '',
+    instituicaoId: '',
+    turnos: [],
     status: true,
   });
 
-  const carregarInstituicoes = useCallback(async () => {
+  const carregarCursos = useCallback(async () => {
     setLoading(true);
+    try {
+      const response = await cursosService.listar();
+      setCursos(response.data.data || response.data);
+    } catch (error) {
+      mostrarSnackbar('Erro ao carregar cursos', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const carregarInstituicoes = useCallback(async () => {
     try {
       const response = await instituicoesService.listar();
       setInstituicoes(response.data.data || response.data);
     } catch (error) {
       mostrarSnackbar('Erro ao carregar instituições', 'error');
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -64,27 +78,23 @@ const InstituicoesPage = () => {
     setSnackbar({ open: true, message, severity });
   }, []);
 
-  const abrirModal = useCallback((instituicao = null) => {
-    if (instituicao) {
-      setEditingId(instituicao._id);
+  const abrirModal = useCallback((curso = null) => {
+    if (curso) {
+      setEditingId(curso._id);
       setFormData({
-        nome: instituicao.nome || '',
-        sigla: instituicao.sigla || '',
-        cnpj: instituicao.cnpj || '',
-        email: instituicao.email || '',
-        telefone: instituicao.telefone || '',
-        endereco: instituicao.endereco || '',
-        status: instituicao.status !== undefined ? instituicao.status : true,
+        nome: curso.nome || '',
+        codigo: curso.codigo || '',
+        instituicaoId: curso.instituicaoId?._id || curso.instituicaoId || '',
+        turnos: curso.turnos || [],
+        status: curso.status !== undefined ? curso.status : true,
       });
     } else {
       setEditingId(null);
       setFormData({
         nome: '',
-        sigla: '',
-        cnpj: '',
-        email: '',
-        telefone: '',
-        endereco: '',
+        codigo: '',
+        instituicaoId: '',
+        turnos: [],
         status: true,
       });
     }
@@ -97,23 +107,23 @@ const InstituicoesPage = () => {
     setShowErrors(false);
   }, []);
 
-  const salvarInstituicao = async () => {
-    if (!formData.nome || !formData.sigla || !formData.cnpj) {
+  const salvarCurso = async () => {
+    if (!formData.nome || !formData.instituicaoId || formData.turnos.length === 0) {
       setShowErrors(true);
       return;
     }
     try {
       if (editingId) {
-        await instituicoesService.atualizar(editingId, formData);
-        mostrarSnackbar('Instituição atualizada com sucesso');
+        await cursosService.atualizar(editingId, formData);
+        mostrarSnackbar('Curso atualizado com sucesso');
       } else {
-        await instituicoesService.criar(formData);
-        mostrarSnackbar('Instituição criada com sucesso');
+        await cursosService.criar(formData);
+        mostrarSnackbar('Curso criado com sucesso');
       }
       fecharModal();
-      carregarInstituicoes();
+      carregarCursos();
     } catch (error) {
-      const message = error.response?.data?.message || 'Erro ao salvar instituição';
+      const message = error.response?.data?.message || 'Erro ao salvar curso';
       mostrarSnackbar(message, 'error');
     }
   };
@@ -123,13 +133,13 @@ const InstituicoesPage = () => {
     setConfirmOpen(true);
   }, []);
 
-  const removerInstituicao = async () => {
+  const removerCurso = async () => {
     try {
-      await instituicoesService.remover(deletingId);
-      mostrarSnackbar('Instituição removida com sucesso');
-      carregarInstituicoes();
+      await cursosService.remover(deletingId);
+      mostrarSnackbar('Curso removido com sucesso');
+      carregarCursos();
     } catch (error) {
-      const message = error.response?.data?.message || 'Erro ao remover instituição';
+      const message = error.response?.data?.message || 'Erro ao remover curso';
       mostrarSnackbar(message, 'error');
     }
   };
@@ -141,22 +151,31 @@ const InstituicoesPage = () => {
     }));
   }, []);
 
-  const instituicoesFiltradas = instituicoes.filter((instituicao) =>
-    ['nome', 'cnpj', 'email', 'telefone'].some(field =>
-      instituicao[field]?.toLowerCase().includes(filtro.toLowerCase())
-    )
+  const handleTurnosChange = useCallback((event) => {
+    const value = typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value;
+    setFormData(prev => ({
+      ...prev,
+      turnos: value
+    }));
+  }, []);
+
+  const cursosFiltrados = cursos.filter((curso) =>
+    ['nome', 'codigo'].some(field =>
+      curso[field]?.toLowerCase().includes(filtro.toLowerCase())
+    ) || curso.instituicaoId?.nome?.toLowerCase().includes(filtro.toLowerCase())
   );
 
   useEffect(() => {
+    carregarCursos();
     carregarInstituicoes();
-  }, [carregarInstituicoes]);
+  }, [carregarCursos, carregarInstituicoes]);
 
   const modalActions = (
     <>
       <Button onClick={fecharModal} variant="outlined">
         Cancelar
       </Button>
-      <Button onClick={salvarInstituicao}>
+      <Button onClick={salvarCurso}>
         {editingId ? 'Atualizar' : 'Criar'}
       </Button>
     </>
@@ -168,7 +187,7 @@ const InstituicoesPage = () => {
         <SearchBar
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
-          placeholder="Filtrar instituições..."
+          placeholder="Filtrar cursos..."
         />
         
         <Button
@@ -177,7 +196,7 @@ const InstituicoesPage = () => {
           variant="outlined"
           color="primary"
         >
-          Nova Instituição
+          Novo Curso
         </Button>
       </Box>
 
@@ -211,38 +230,49 @@ const InstituicoesPage = () => {
             }
           }}>
             <TableRow>
-              <TableCell sx={{ width: 300 }}>Nome</TableCell>
-              <TableCell sx={{ width: 70 }}>Sigla</TableCell>
-              <TableCell sx={{ width: 150 }}>CNPJ</TableCell>
-              <TableCell sx={{ width: 200 }}>Email</TableCell>
-              <TableCell sx={{ width: 120 }}>Telefone</TableCell>
+              <TableCell sx={{ width: 250 }}>Nome</TableCell>
+              <TableCell sx={{ width: 100 }}>Código</TableCell>
+              <TableCell sx={{ width: 200 }}>Instituição</TableCell>
+              <TableCell sx={{ width: 200 }}>Turnos</TableCell>
               <TableCell sx={{ width: 60 }}>Status</TableCell>
               <TableCell sx={{ width: 80 }}>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {instituicoesFiltradas.map((instituicao) => (
-              <TableRow key={instituicao._id}>
-                <TableCell>{instituicao.nome}</TableCell>
-                <TableCell>{instituicao.sigla}</TableCell>
-                <TableCell>{instituicao.cnpj}</TableCell>
-                <TableCell>{instituicao.email || 'N/A'}</TableCell>
-                <TableCell>{instituicao.telefone || 'N/A'}</TableCell>
+            {cursosFiltrados.map((curso) => (
+              <TableRow key={curso._id}>
+                <TableCell>{curso.nome}</TableCell>
+                <TableCell>{curso.codigo || 'N/A'}</TableCell>
+                <TableCell>
+                  {curso.instituicaoId?.nome || 'N/A'}
+                  {curso.instituicaoId && !curso.instituicaoId.status && (
+                    <Typography variant="caption" color="error" sx={{ display: 'block', fontSize: '0.7rem' }}>
+                      (Instituição inativa)
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {curso.turnos?.map((turno) => (
+                      <Chip key={turno} label={turno} size="small" />
+                    ))}
+                  </Box>
+                </TableCell>
                 <TableCell>
                   <Switch
-                    checked={instituicao.status}
+                    checked={curso.status}
                     onChange={async (e) => {
                       const novoStatus = e.target.checked;
                       try {
-                        await instituicoesService.atualizar(instituicao._id, { ...instituicao, status: novoStatus });
-                        setInstituicoes(prev => 
-                          prev.map(inst => 
-                            inst._id === instituicao._id 
-                              ? { ...inst, status: novoStatus }
-                              : inst
+                        await cursosService.atualizar(curso._id, { ...curso, status: novoStatus });
+                        setCursos(prev => 
+                          prev.map(c => 
+                            c._id === curso._id 
+                              ? { ...c, status: novoStatus }
+                              : c
                           )
                         );
-                        mostrarSnackbar(`Instituição ${novoStatus ? 'ativada' : 'desativada'} com sucesso`);
+                        mostrarSnackbar(`Curso ${novoStatus ? 'ativado' : 'desativado'} com sucesso`);
                       } catch (error) {
                         mostrarSnackbar('Erro ao alterar status', 'error');
                       }
@@ -254,14 +284,14 @@ const InstituicoesPage = () => {
                   <Box sx={{ display: 'flex', gap: 0.5 }}>
                     <IconButton
                       size="small"
-                      onClick={() => abrirModal(instituicao)}
+                      onClick={() => abrirModal(curso)}
                       color="primary"
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"
-                      onClick={() => confirmarRemocao(instituicao._id)}
+                      onClick={() => confirmarRemocao(curso._id)}
                       color="error"
                     >
                       <DeleteIcon fontSize="small" />
@@ -269,8 +299,7 @@ const InstituicoesPage = () => {
                   </Box>
                 </TableCell>
               </TableRow>
-            ))
-          }
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -278,7 +307,7 @@ const InstituicoesPage = () => {
       <Modal
         open={modalOpen}
         onClose={fecharModal}
-        title={editingId ? 'Editar Instituição' : 'Cadastrar Nova Instituição'}
+        title={editingId ? 'Editar Curso' : 'Cadastrar Novo Curso'}
         actions={modalActions}
         maxWidth="md"
         fullWidth
@@ -296,63 +325,77 @@ const InstituicoesPage = () => {
               forceShowError={showErrors}
             />
             <Input
-              label="Sigla *"
-              value={formData.sigla}
-              onChange={handleFormChange('sigla')}
-              required
-              minLength={2}
-              maxLength={10}
+              label="Código"
+              value={formData.codigo}
+              onChange={handleFormChange('codigo')}
+              maxLength={20}
               size="small"
-              forceShowError={showErrors}
             />
           </Box>
           
-          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-            <Input
-              label="Telefone"
-              value={formData.telefone}
-              onChange={handleFormChange('telefone')}
-              mask="telefone"
-              size="small"
-            />
-            <Input
-              label="CNPJ *"
-              value={formData.cnpj}
-              onChange={handleFormChange('cnpj')}
-              mask="cnpj"
-              required
-              size="small"
-              forceShowError={showErrors}
-            />
-          </Box>
-          
-          <Input
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={handleFormChange('email')}
-            size="small"
-            maxLength={50}
-          />
-          
-          <Input
-            label="Endereço"
-            value={formData.endereco}
-            onChange={handleFormChange('endereco')}
-            multiline
-            rows={4}
-            maxLength={100}
-            size="small"
-          />
+          <FormControl size="small" required>
+            <InputLabel>Instituição</InputLabel>
+            <Select
+              value={formData.instituicaoId}
+              onChange={handleFormChange('instituicaoId')}
+              label="Instituição"
+              error={showErrors && !formData.instituicaoId}
+            >
+              {instituicoes.map((instituicao) => (
+                <MenuItem key={instituicao._id} value={instituicao._id}>
+                  {instituicao.nome}
+                  {!instituicao.status && (
+                    <Typography variant="caption" color="error" sx={{ ml: 1 }}>
+                      (Inativa)
+                    </Typography>
+                  )}
+                </MenuItem>
+              ))}
+            </Select>
+            {formData.instituicaoId && (
+              (() => {
+                const instituicaoAtual = instituicoes.find(inst => inst._id === formData.instituicaoId);
+                return instituicaoAtual && !instituicaoAtual.status ? (
+                  <Typography variant="caption" color="warning.main" sx={{ mt: 0.5, display: 'block' }}>
+                    ⚠️ A instituição selecionada está inativa.
+                  </Typography>
+                ) : null;
+              })()
+            )}
+          </FormControl>
+
+          <FormControl size="small" required>
+            <InputLabel>Turnos</InputLabel>
+            <Select
+              multiple
+              value={formData.turnos}
+              onChange={handleTurnosChange}
+              input={<OutlinedInput label="Turnos" />}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value) => (
+                    <Chip key={value} label={value} size="small" />
+                  ))}
+                </Box>
+              )}
+              error={showErrors && formData.turnos.length === 0}
+            >
+              {['Manhã', 'Tarde', 'Noite'].map((turno) => (
+                <MenuItem key={turno} value={turno}>
+                  {turno}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
       </Modal>
 
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        onConfirm={removerInstituicao}
-        title="Excluir Instituição"
-        message="Esta ação não pode ser desfeita. Todos os dados relacionados a esta instituição serão permanentemente removidos."
+        onConfirm={removerCurso}
+        title="Excluir Curso"
+        message="Esta ação não pode ser desfeita. Todos os dados relacionados a este curso serão permanentemente removidos."
         confirmText="Excluir"
         cancelText="Cancelar"
       />
@@ -374,4 +417,4 @@ const InstituicoesPage = () => {
   );
 };
 
-export default InstituicoesPage;
+export default CursosPage;

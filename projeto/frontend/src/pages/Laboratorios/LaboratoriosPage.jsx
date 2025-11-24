@@ -25,10 +25,11 @@ import SearchBar from '../../components/common/SearchBar/SearchBar';
 import Modal from '../../components/common/Modal/Modal';
 import Input from '../../components/common/Input/Input';
 import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
-import { instituicoesService } from '../../services/api';
+import { laboratoriosService } from '../../services/api';
+import { formatNumber, parseNumber } from '../../utils/masks';
 
-const InstituicoesPage = () => {
-  const [instituicoes, setInstituicoes] = useState([]);
+const LaboratoriosPage = () => {
+  const [laboratorios, setLaboratorios] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -40,21 +41,18 @@ const InstituicoesPage = () => {
   
   const [formData, setFormData] = useState({
     nome: '',
-    sigla: '',
-    cnpj: '',
-    email: '',
-    telefone: '',
-    endereco: '',
+    capacidade: '',
+    localizacao: '',
     status: true,
   });
 
-  const carregarInstituicoes = useCallback(async () => {
+  const carregarLaboratorios = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await instituicoesService.listar();
-      setInstituicoes(response.data.data || response.data);
+      const response = await laboratoriosService.listar();
+      setLaboratorios(response.data.data || response.data);
     } catch (error) {
-      mostrarSnackbar('Erro ao carregar instituições', 'error');
+      mostrarSnackbar('Erro ao carregar laboratórios', 'error');
     } finally {
       setLoading(false);
     }
@@ -64,27 +62,21 @@ const InstituicoesPage = () => {
     setSnackbar({ open: true, message, severity });
   }, []);
 
-  const abrirModal = useCallback((instituicao = null) => {
-    if (instituicao) {
-      setEditingId(instituicao._id);
+  const abrirModal = useCallback((laboratorio = null) => {
+    if (laboratorio) {
+      setEditingId(laboratorio._id);
       setFormData({
-        nome: instituicao.nome || '',
-        sigla: instituicao.sigla || '',
-        cnpj: instituicao.cnpj || '',
-        email: instituicao.email || '',
-        telefone: instituicao.telefone || '',
-        endereco: instituicao.endereco || '',
-        status: instituicao.status !== undefined ? instituicao.status : true,
+        nome: laboratorio.nome || '',
+        capacidade: laboratorio.capacidade || '',
+        localizacao: laboratorio.localizacao || '',
+        status: laboratorio.status !== undefined ? laboratorio.status : true,
       });
     } else {
       setEditingId(null);
       setFormData({
         nome: '',
-        sigla: '',
-        cnpj: '',
-        email: '',
-        telefone: '',
-        endereco: '',
+        capacidade: '',
+        localizacao: '',
         status: true,
       });
     }
@@ -97,23 +89,28 @@ const InstituicoesPage = () => {
     setShowErrors(false);
   }, []);
 
-  const salvarInstituicao = async () => {
-    if (!formData.nome || !formData.sigla || !formData.cnpj) {
+  const salvarLaboratorio = async () => {
+    if (!formData.nome || !formData.capacidade) {
       setShowErrors(true);
       return;
     }
     try {
+      const dataToSend = {
+        ...formData,
+        capacidade: parseInt(parseNumber(formData.capacidade))
+      };
+      
       if (editingId) {
-        await instituicoesService.atualizar(editingId, formData);
-        mostrarSnackbar('Instituição atualizada com sucesso');
+        await laboratoriosService.atualizar(editingId, dataToSend);
+        mostrarSnackbar('Laboratório atualizado com sucesso');
       } else {
-        await instituicoesService.criar(formData);
-        mostrarSnackbar('Instituição criada com sucesso');
+        await laboratoriosService.criar(dataToSend);
+        mostrarSnackbar('Laboratório criado com sucesso');
       }
       fecharModal();
-      carregarInstituicoes();
+      carregarLaboratorios();
     } catch (error) {
-      const message = error.response?.data?.message || 'Erro ao salvar instituição';
+      const message = error.response?.data?.message || 'Erro ao salvar laboratório';
       mostrarSnackbar(message, 'error');
     }
   };
@@ -123,40 +120,50 @@ const InstituicoesPage = () => {
     setConfirmOpen(true);
   }, []);
 
-  const removerInstituicao = async () => {
+  const removerLaboratorio = async () => {
     try {
-      await instituicoesService.remover(deletingId);
-      mostrarSnackbar('Instituição removida com sucesso');
-      carregarInstituicoes();
+      await laboratoriosService.remover(deletingId);
+      mostrarSnackbar('Laboratório removido com sucesso');
+      carregarLaboratorios();
     } catch (error) {
-      const message = error.response?.data?.message || 'Erro ao remover instituição';
+      const message = error.response?.data?.message || 'Erro ao remover laboratório';
       mostrarSnackbar(message, 'error');
     }
   };
 
   const handleFormChange = useCallback((field) => (event) => {
+    let value = event.target.value;
+    
+    if (field === 'capacidade') {
+      const numericValue = parseNumber(value);
+      if (numericValue && parseInt(numericValue) > 100000) {
+        value = '100000';
+      }
+      value = formatNumber(numericValue);
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [field]: event.target.value
+      [field]: value
     }));
   }, []);
 
-  const instituicoesFiltradas = instituicoes.filter((instituicao) =>
-    ['nome', 'cnpj', 'email', 'telefone'].some(field =>
-      instituicao[field]?.toLowerCase().includes(filtro.toLowerCase())
-    )
+  const laboratoriosFiltrados = laboratorios.filter((laboratorio) =>
+    ['nome', 'localizacao'].some(field =>
+      laboratorio[field]?.toLowerCase().includes(filtro.toLowerCase())
+    ) || laboratorio.capacidade?.toString().includes(filtro)
   );
 
   useEffect(() => {
-    carregarInstituicoes();
-  }, [carregarInstituicoes]);
+    carregarLaboratorios();
+  }, [carregarLaboratorios]);
 
   const modalActions = (
     <>
       <Button onClick={fecharModal} variant="outlined">
         Cancelar
       </Button>
-      <Button onClick={salvarInstituicao}>
+      <Button onClick={salvarLaboratorio}>
         {editingId ? 'Atualizar' : 'Criar'}
       </Button>
     </>
@@ -168,7 +175,7 @@ const InstituicoesPage = () => {
         <SearchBar
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
-          placeholder="Filtrar instituições..."
+          placeholder="Filtrar laboratórios..."
         />
         
         <Button
@@ -177,7 +184,7 @@ const InstituicoesPage = () => {
           variant="outlined"
           color="primary"
         >
-          Nova Instituição
+          Novo Laboratório
         </Button>
       </Box>
 
@@ -211,38 +218,34 @@ const InstituicoesPage = () => {
             }
           }}>
             <TableRow>
-              <TableCell sx={{ width: 300 }}>Nome</TableCell>
-              <TableCell sx={{ width: 70 }}>Sigla</TableCell>
-              <TableCell sx={{ width: 150 }}>CNPJ</TableCell>
-              <TableCell sx={{ width: 200 }}>Email</TableCell>
-              <TableCell sx={{ width: 120 }}>Telefone</TableCell>
+              <TableCell sx={{ width: 250 }}>Nome</TableCell>
+              <TableCell sx={{ width: 120 }}>Capacidade</TableCell>
+              <TableCell sx={{ width: 300 }}>Localização</TableCell>
               <TableCell sx={{ width: 60 }}>Status</TableCell>
               <TableCell sx={{ width: 80 }}>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {instituicoesFiltradas.map((instituicao) => (
-              <TableRow key={instituicao._id}>
-                <TableCell>{instituicao.nome}</TableCell>
-                <TableCell>{instituicao.sigla}</TableCell>
-                <TableCell>{instituicao.cnpj}</TableCell>
-                <TableCell>{instituicao.email || 'N/A'}</TableCell>
-                <TableCell>{instituicao.telefone || 'N/A'}</TableCell>
+            {laboratoriosFiltrados.map((laboratorio) => (
+              <TableRow key={laboratorio._id}>
+                <TableCell>{laboratorio.nome}</TableCell>
+                <TableCell>{laboratorio.capacidade} pessoas</TableCell>
+                <TableCell>{laboratorio.localizacao || 'N/A'}</TableCell>
                 <TableCell>
                   <Switch
-                    checked={instituicao.status}
+                    checked={laboratorio.status}
                     onChange={async (e) => {
                       const novoStatus = e.target.checked;
                       try {
-                        await instituicoesService.atualizar(instituicao._id, { ...instituicao, status: novoStatus });
-                        setInstituicoes(prev => 
-                          prev.map(inst => 
-                            inst._id === instituicao._id 
-                              ? { ...inst, status: novoStatus }
-                              : inst
+                        await laboratoriosService.atualizar(laboratorio._id, { ...laboratorio, status: novoStatus });
+                        setLaboratorios(prev => 
+                          prev.map(lab => 
+                            lab._id === laboratorio._id 
+                              ? { ...lab, status: novoStatus }
+                              : lab
                           )
                         );
-                        mostrarSnackbar(`Instituição ${novoStatus ? 'ativada' : 'desativada'} com sucesso`);
+                        mostrarSnackbar(`Laboratório ${novoStatus ? 'ativado' : 'desativado'} com sucesso`);
                       } catch (error) {
                         mostrarSnackbar('Erro ao alterar status', 'error');
                       }
@@ -254,14 +257,14 @@ const InstituicoesPage = () => {
                   <Box sx={{ display: 'flex', gap: 0.5 }}>
                     <IconButton
                       size="small"
-                      onClick={() => abrirModal(instituicao)}
+                      onClick={() => abrirModal(laboratorio)}
                       color="primary"
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"
-                      onClick={() => confirmarRemocao(instituicao._id)}
+                      onClick={() => confirmarRemocao(laboratorio._id)}
                       color="error"
                     >
                       <DeleteIcon fontSize="small" />
@@ -269,8 +272,7 @@ const InstituicoesPage = () => {
                   </Box>
                 </TableCell>
               </TableRow>
-            ))
-          }
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -278,7 +280,7 @@ const InstituicoesPage = () => {
       <Modal
         open={modalOpen}
         onClose={fecharModal}
-        title={editingId ? 'Editar Instituição' : 'Cadastrar Nova Instituição'}
+        title={editingId ? 'Editar Laboratório' : 'Cadastrar Novo Laboratório'}
         actions={modalActions}
         maxWidth="md"
         fullWidth
@@ -290,58 +292,32 @@ const InstituicoesPage = () => {
               value={formData.nome}
               onChange={handleFormChange('nome')}
               required
-              minLength={3}
-              maxLength={150}
-              size="small"
-              forceShowError={showErrors}
-            />
-            <Input
-              label="Sigla *"
-              value={formData.sigla}
-              onChange={handleFormChange('sigla')}
-              required
               minLength={2}
-              maxLength={10}
+              maxLength={120}
               size="small"
               forceShowError={showErrors}
+              sx={{ flex: 1 }}
             />
-          </Box>
-          
-          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            
             <Input
-              label="Telefone"
-              value={formData.telefone}
-              onChange={handleFormChange('telefone')}
-              mask="telefone"
-              size="small"
-            />
-            <Input
-              label="CNPJ *"
-              value={formData.cnpj}
-              onChange={handleFormChange('cnpj')}
-              mask="cnpj"
+              label="Capacidade *"
+              value={formData.capacidade}
+              onChange={handleFormChange('capacidade')}
               required
               size="small"
               forceShowError={showErrors}
+              placeholder="Ex: 1.000"
+              sx={{ flex: 1 }}
             />
           </Box>
           
           <Input
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={handleFormChange('email')}
-            size="small"
-            maxLength={50}
-          />
-          
-          <Input
-            label="Endereço"
-            value={formData.endereco}
-            onChange={handleFormChange('endereco')}
+            label="Localização"
+            value={formData.localizacao}
+            onChange={handleFormChange('localizacao')}
+            maxLength={200}
             multiline
-            rows={4}
-            maxLength={100}
+            rows={3}
             size="small"
           />
         </Box>
@@ -350,9 +326,9 @@ const InstituicoesPage = () => {
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        onConfirm={removerInstituicao}
-        title="Excluir Instituição"
-        message="Esta ação não pode ser desfeita. Todos os dados relacionados a esta instituição serão permanentemente removidos."
+        onConfirm={removerLaboratorio}
+        title="Excluir Laboratório"
+        message="Esta ação não pode ser desfeita. Todos os dados relacionados a este laboratório serão permanentemente removidos."
         confirmText="Excluir"
         cancelText="Cancelar"
       />
@@ -374,4 +350,4 @@ const InstituicoesPage = () => {
   );
 };
 
-export default InstituicoesPage;
+export default LaboratoriosPage;

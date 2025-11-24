@@ -77,8 +77,8 @@ const listarDisciplinas = async (req, res, next) => {
 
     const skip = (page - 1) * limit;
     const disciplinas = await Disciplina.find(filter)
-      .populate('cursoId', 'nome codigo')
-      .populate('professorId', 'nome email')
+      .populate('cursoId', 'nome codigo status')
+      .populate('professorId', 'nome email status')
       .skip(skip)
       .limit(parseInt(limit))
       .sort({ nome: 1 });
@@ -150,8 +150,8 @@ const atualizarDisciplina = async (req, res, next) => {
 const buscarDisciplinaPorId = async (req, res, next) => {
   try {
     const disciplina = await Disciplina.findById(req.params.id)
-      .populate('cursoId', 'nome codigo')
-      .populate('professorId', 'nome email');
+      .populate('cursoId', 'nome codigo status')
+      .populate('professorId', 'nome email status');
 
     if (!disciplina) {
       return res.status(404).json({
@@ -197,8 +197,8 @@ const atualizarDisciplinaParcial = async (req, res, next) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('cursoId', 'nome codigo')
-     .populate('professorId', 'nome email');
+    ).populate('cursoId', 'nome codigo status')
+     .populate('professorId', 'nome email status');
 
     if (!disciplina) {
       return res.status(404).json({

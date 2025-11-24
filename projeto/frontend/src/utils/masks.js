@@ -47,3 +47,21 @@ export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
+
+export const formatNumber = (value) => {
+  if (!value) return '';
+  const num = parseInt(value.toString().replace(/\D/g, ''));
+  if (isNaN(num)) return '';
+  if (num > 100000) return '100.000';
+  return num.toLocaleString('pt-BR');
+};
+
+export const parseNumber = (value) => {
+  if (!value) return '';
+  return value.toString().replace(/\D/g, '');
+};
+
+export const capitalizeFirst = (str) => {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
