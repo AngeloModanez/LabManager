@@ -35,7 +35,7 @@ const Modal = ({
         </Box>
       </DialogTitle>
       
-      <DialogContent>
+      <DialogContent sx={{ overflow: 'visible' }}>
         {children}
       </DialogContent>
       

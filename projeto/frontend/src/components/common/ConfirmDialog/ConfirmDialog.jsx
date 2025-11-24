@@ -23,16 +23,20 @@ const ConfirmDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>{message}</DialogContentText>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ pb: 2, fontWeight: 'bold' }}>
+        {title}
+      </DialogTitle>
+      <DialogContent sx={{ py: 3 }}>
+        <DialogContentText sx={{ fontSize: '1.1rem', lineHeight: 1.6 }}>
+          {message}
+        </DialogContentText>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="inherit">
+      <DialogActions sx={{ p: 3, gap: 1 }}>
+        <Button onClick={onClose} variant="outlined" size="large">
           {cancelText}
         </Button>
-        <Button onClick={handleConfirm} color="error" variant="contained">
+        <Button onClick={handleConfirm} color="error" variant="contained" size="large">
           {confirmText}
         </Button>
       </DialogActions>

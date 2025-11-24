@@ -97,7 +97,7 @@ const Menu = ({ open, onClose }) => {
               borderColor: 'divider',
             }}
           >
-            <Typography variant="h6">
+            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
               {modalTitle}
             </Typography>
             <IconButton onClick={handleCloseModal}>
@@ -109,11 +109,7 @@ const Menu = ({ open, onClose }) => {
             {modalContent}
           </Box>
 
-          <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-            <Button onClick={handleCloseModal} variant="contained">
-              Fechar
-            </Button>
-          </Box>
+
         </Box>
       </Modal>
     </>

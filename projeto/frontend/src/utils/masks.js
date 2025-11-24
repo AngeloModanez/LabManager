@@ -42,3 +42,8 @@ export const validateTelefone = (telefone) => {
   const clean = telefone.replace(/\D/g, '');
   return clean.length >= 10 && clean.length <= 13;
 };
+
+export const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};

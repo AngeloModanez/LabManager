@@ -12,6 +12,7 @@ import {
   Typography,
   Snackbar,
   Alert,
+  Switch,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -35,6 +36,7 @@ const InstituicoesPage = () => {
   const [deletingId, setDeletingId] = useState(null);
   const [filtro, setFiltro] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [showErrors, setShowErrors] = useState(false);
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -92,9 +94,14 @@ const InstituicoesPage = () => {
   const fecharModal = useCallback(() => {
     setModalOpen(false);
     setEditingId(null);
+    setShowErrors(false);
   }, []);
 
   const salvarInstituicao = async () => {
+    if (!formData.nome || !formData.sigla || !formData.cnpj) {
+      setShowErrors(true);
+      return;
+    }
     try {
       if (editingId) {
         await instituicoesService.atualizar(editingId, formData);
@@ -135,7 +142,7 @@ const InstituicoesPage = () => {
   }, []);
 
   const instituicoesFiltradas = instituicoes.filter((instituicao) =>
-    ['nome', 'cnpj', 'email'].some(field =>
+    ['nome', 'cnpj', 'email', 'telefone'].some(field =>
       instituicao[field]?.toLowerCase().includes(filtro.toLowerCase())
     )
   );
@@ -157,33 +164,60 @@ const InstituicoesPage = () => {
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Button
-            startIcon={<AddIcon />}
-            onClick={() => abrirModal()}
-          >
-            Nova Instituição
-          </Button>
-          
-          <SearchBar
-            value={filtro}
-            onChange={(e) => setFiltro(e.target.value)}
-            placeholder="Filtrar instituições..."
-          />
-        </Box>
-      </Paper>
+      <Box sx={{ px: 0, mb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+        <SearchBar
+          value={filtro}
+          onChange={(e) => setFiltro(e.target.value)}
+          placeholder="Filtrar instituições..."
+        />
+        
+        <Button
+          startIcon={<AddIcon />}
+          onClick={() => abrirModal()}
+          variant="outlined"
+          color="primary"
+        >
+          Nova Instituição
+        </Button>
+      </Box>
 
-      <TableContainer component={Paper} sx={{ flexGrow: 1 }}>
-        <Table>
-          <TableHead>
+      <TableContainer sx={{ 
+        flexGrow: 1, 
+        border: '1px solid', 
+        borderColor: 'divider', 
+        borderRadius: 1, 
+        overflowX: 'auto',
+        height: 'calc(100vh - 280px)',
+        overflowY: 'auto'
+      }}>
+        <Table 
+          size="small" 
+          stickyHeader
+          sx={{ 
+            '& .MuiTableCell-root': { px: 1 },
+            '& .MuiTableBody-root .MuiTableRow-root:nth-of-type(even)': {
+              backgroundColor: 'grey.50'
+            },
+            '& .MuiTableBody-root .MuiTableRow-root:hover': {
+              backgroundColor: 'grey.200'
+            }
+          }}
+        >
+          <TableHead sx={{ 
+            '& .MuiTableCell-head': {
+              backgroundColor: 'primary.main',
+              color: 'primary.contrastText',
+              fontWeight: 'bold'
+            }
+          }}>
             <TableRow>
-              <TableCell>Nome</TableCell>
-              <TableCell>Sigla</TableCell>
-              <TableCell>CNPJ</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Ações</TableCell>
+              <TableCell sx={{ width: 300 }}>Nome</TableCell>
+              <TableCell sx={{ width: 70 }}>Sigla</TableCell>
+              <TableCell sx={{ width: 150 }}>CNPJ</TableCell>
+              <TableCell sx={{ width: 200 }}>Email</TableCell>
+              <TableCell sx={{ width: 120 }}>Telefone</TableCell>
+              <TableCell sx={{ width: 60 }}>Ativo</TableCell>
+              <TableCell sx={{ width: 80 }}>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -192,30 +226,51 @@ const InstituicoesPage = () => {
                 <TableCell>{instituicao.nome}</TableCell>
                 <TableCell>{instituicao.sigla}</TableCell>
                 <TableCell>{instituicao.cnpj}</TableCell>
-                <TableCell>{instituicao.email}</TableCell>
+                <TableCell>{instituicao.email || 'N/A'}</TableCell>
+                <TableCell>{instituicao.telefone || 'N/A'}</TableCell>
                 <TableCell>
-                  <Typography color={instituicao.ativo ? 'success.main' : 'error.main'}>
-                    {instituicao.ativo ? 'Ativo' : 'Inativo'}
-                  </Typography>
+                  <Switch
+                    checked={instituicao.ativo}
+                    onChange={async (e) => {
+                      const novoStatus = e.target.checked;
+                      try {
+                        await instituicoesService.atualizar(instituicao._id, { ...instituicao, ativo: novoStatus });
+                        setInstituicoes(prev => 
+                          prev.map(inst => 
+                            inst._id === instituicao._id 
+                              ? { ...inst, ativo: novoStatus }
+                              : inst
+                          )
+                        );
+                        mostrarSnackbar(`Instituição ${novoStatus ? 'ativada' : 'desativada'} com sucesso`);
+                      } catch (error) {
+                        mostrarSnackbar('Erro ao alterar status', 'error');
+                      }
+                    }}
+                    size="small"
+                  />
                 </TableCell>
                 <TableCell>
-                  <IconButton
-                    size="small"
-                    onClick={() => abrirModal(instituicao)}
-                    color="primary"
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => confirmarRemocao(instituicao._id)}
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => abrirModal(instituicao)}
+                      color="primary"
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => confirmarRemocao(instituicao._id)}
+                      color="error"
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+          }
           </TableBody>
         </Table>
       </TableContainer>
@@ -223,50 +278,71 @@ const InstituicoesPage = () => {
       <Modal
         open={modalOpen}
         onClose={fecharModal}
-        title={editingId ? 'Editar Instituição' : 'Nova Instituição'}
+        title={editingId ? 'Editar Instituição' : 'Cadastrar Nova Instituição'}
         actions={modalActions}
+        maxWidth="md"
+        fullWidth
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-          <Input
-            label="Nome *"
-            value={formData.nome}
-            onChange={handleFormChange('nome')}
-            required
-            maxLength={100}
-          />
-          <Input
-            label="Sigla *"
-            value={formData.sigla}
-            onChange={handleFormChange('sigla')}
-            required
-            maxLength={10}
-          />
-          <Input
-            label="CNPJ *"
-            value={formData.cnpj}
-            onChange={handleFormChange('cnpj')}
-            mask="cnpj"
-            required
-          />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <Input
+              label="Nome *"
+              value={formData.nome}
+              onChange={handleFormChange('nome')}
+              required
+              minLength={3}
+              maxLength={80}
+              size="small"
+              forceShowError={showErrors}
+            />
+            <Input
+              label="Sigla *"
+              value={formData.sigla}
+              onChange={handleFormChange('sigla')}
+              required
+              minLength={2}
+              maxLength={10}
+              size="small"
+              forceShowError={showErrors}
+            />
+          </Box>
+          
+          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <Input
+              label="Telefone"
+              value={formData.telefone}
+              onChange={handleFormChange('telefone')}
+              mask="telefone"
+              size="small"
+            />
+            <Input
+              label="CNPJ *"
+              value={formData.cnpj}
+              onChange={handleFormChange('cnpj')}
+              mask="cnpj"
+              required
+              size="small"
+              forceShowError={showErrors}
+            />
+          </Box>
+          
           <Input
             label="Email"
             type="email"
             value={formData.email}
             onChange={handleFormChange('email')}
+            size="small"
+            maxLength={50}
           />
-          <Input
-            label="Telefone"
-            value={formData.telefone}
-            onChange={handleFormChange('telefone')}
-            mask="telefone"
-          />
+          
           <Input
             label="Endereço"
             value={formData.endereco}
             onChange={handleFormChange('endereco')}
             multiline
-            rows={2}
-            maxLength={200}
+            rows={4}
+            maxLength={100}
+            size="small"
           />
         </Box>
       </Modal>
@@ -275,9 +351,10 @@ const InstituicoesPage = () => {
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={removerInstituicao}
-        title="Remover Instituição"
-        message="Tem certeza que deseja remover esta instituição?"
-        confirmText="Remover"
+        title="Excluir Instituição"
+        message="Esta ação não pode ser desfeita. Todos os dados relacionados a esta instituição serão permanentemente removidos."
+        confirmText="Excluir"
+        cancelText="Cancelar"
       />
 
       <Snackbar

@@ -21,7 +21,12 @@ const SearchBar = ({
           </InputAdornment>
         ),
       }}
-      sx={{ minWidth: 250 }}
+      sx={{ 
+        minWidth: 350,
+        '& .MuiOutlinedInput-root': {
+          borderRadius: 3,
+        }
+      }}
       {...props}
     />
   );

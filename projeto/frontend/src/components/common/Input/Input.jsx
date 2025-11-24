@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TextField } from '@mui/material';
-import { applyMask, masks } from '../../../utils/masks';
+import { applyMask, masks, validateCNPJ, validateTelefone, validateEmail } from '../../../utils/masks';
 
 const Input = ({
   label,
@@ -12,6 +12,7 @@ const Input = ({
   required = false,
   error: externalError,
   helperText: externalHelperText,
+  forceShowError = false,
   ...props
 }) => {
   const [internalError, setInternalError] = useState('');
@@ -19,6 +20,10 @@ const Input = ({
 
   const handleChange = (event) => {
     let newValue = event.target.value;
+    
+    if (maxLength && newValue.length > maxLength) {
+      newValue = newValue.slice(0, maxLength);
+    }
     
     if (mask) {
       const maskPattern = typeof masks[mask] === 'function' 
@@ -32,7 +37,6 @@ const Input = ({
 
   const handleBlur = () => {
     setTouched(true);
-    validateField();
   };
 
   const validateField = () => {
@@ -40,10 +44,16 @@ const Input = ({
     
     if (required && !value) {
       errorMessage = `${label} é obrigatório`;
-    } else if (minLength && value.length < minLength) {
+    } else if (value && minLength && value.length < minLength) {
       errorMessage = `${label} deve ter no mínimo ${minLength} caracteres`;
-    } else if (maxLength && value.length > maxLength) {
+    } else if (value && maxLength && value.length > maxLength) {
       errorMessage = `${label} deve ter no máximo ${maxLength} caracteres`;
+    } else if (value && mask === 'cnpj' && !validateCNPJ(value)) {
+      errorMessage = 'CNPJ inválido';
+    } else if (value && mask === 'telefone' && !validateTelefone(value)) {
+      errorMessage = 'Telefone inválido';
+    } else if (value && props.type === 'email' && !validateEmail(value)) {
+      errorMessage = 'Email inválido';
     }
     
     setInternalError(errorMessage);
@@ -51,13 +61,13 @@ const Input = ({
   };
 
   useEffect(() => {
-    if (touched) {
+    if (touched || forceShowError) {
       validateField();
     }
-  }, [value, touched]);
+  }, [value, touched, forceShowError, required, minLength, maxLength, label, mask, props.type]);
 
-  const hasError = externalError || (touched && internalError);
-  const displayHelperText = externalHelperText || (touched && internalError);
+  const hasError = externalError || (touched && internalError) || (forceShowError && internalError);
+  const displayHelperText = externalHelperText || (touched && internalError) || (forceShowError && internalError);
 
   return (
     <TextField
@@ -68,6 +78,15 @@ const Input = ({
       error={!!hasError}
       helperText={displayHelperText}
       fullWidth
+      sx={{
+        '& .MuiOutlinedInput-root': {
+          borderRadius: 2,
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'primary.main',
+          },
+        },
+        ...props.sx
+      }}
       {...props}
     />
   );
