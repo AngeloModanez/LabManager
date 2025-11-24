@@ -14,38 +14,34 @@ import {
   Paragraph,
   Chip,
 } from 'react-native-paper';
-import { instituicoesService } from '../../services/api';
-import MobileInput from '../common/MobileInput';
-import MobileList from '../common/MobileList';
+import { professoresService } from '../services/api';
+import MobileInput from '../components/common/MobileInput';
+import MobileList from '../components/common/MobileList';
 
-const InstituicoesScreen = () => {
-  const [instituicoes, setInstituicoes] = useState([]);
+const ProfessoresScreen = () => {
+  const [professores, setProfessores] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [filtro, setFiltro] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [showErrors, setShowErrors] = useState(false);
   
   const [formData, setFormData] = useState({
     nome: '',
-    sigla: '',
-    cnpj: '',
     email: '',
     telefone: '',
-    endereco: '',
     status: true,
   });
-  const [showErrors, setShowErrors] = useState(false);
 
-  const carregarInstituicoes = async () => {
+  const carregarProfessores = async () => {
     setLoading(true);
     try {
-      const response = await instituicoesService.listar();
-      setInstituicoes(response.data);
+      const response = await professoresService.listar();
+      setProfessores(response.data.data || response.data);
     } catch (error) {
-      console.error('Erro ao carregar:', error);
-      mostrarSnackbar('Erro ao carregar instituições');
+      mostrarSnackbar('Erro ao carregar professores');
     } finally {
       setLoading(false);
     }
@@ -56,27 +52,21 @@ const InstituicoesScreen = () => {
     setSnackbarVisible(true);
   };
 
-  const abrirDialog = (instituicao = null) => {
-    if (instituicao) {
-      setEditingId(instituicao._id);
+  const abrirDialog = (professor = null) => {
+    if (professor) {
+      setEditingId(professor._id);
       setFormData({
-        nome: instituicao.nome || '',
-        sigla: instituicao.sigla || '',
-        cnpj: instituicao.cnpj || '',
-        email: instituicao.email || '',
-        telefone: instituicao.telefone || '',
-        endereco: instituicao.endereco || '',
-        status: instituicao.status !== undefined ? instituicao.status : true,
+        nome: professor.nome || '',
+        email: professor.email || '',
+        telefone: professor.telefone || '',
+        status: professor.status !== undefined ? professor.status : true,
       });
     } else {
       setEditingId(null);
       setFormData({
         nome: '',
-        sigla: '',
-        cnpj: '',
         email: '',
         telefone: '',
-        endereco: '',
         status: true,
       });
     }
@@ -90,31 +80,31 @@ const InstituicoesScreen = () => {
     setShowErrors(false);
   };
 
-  const salvarInstituicao = async () => {
-    if (!formData.nome || !formData.sigla || !formData.cnpj) {
+  const salvarProfessor = async () => {
+    if (!formData.nome || !formData.email) {
       setShowErrors(true);
       return;
     }
 
     try {
       if (editingId) {
-        await instituicoesService.atualizar(editingId, formData);
-        mostrarSnackbar('Instituição atualizada com sucesso');
+        await professoresService.atualizar(editingId, formData);
+        mostrarSnackbar('Professor atualizado com sucesso');
       } else {
-        await instituicoesService.criar(formData);
-        mostrarSnackbar('Instituição criada com sucesso');
+        await professoresService.criar(formData);
+        mostrarSnackbar('Professor criado com sucesso');
       }
       fecharDialog();
-      carregarInstituicoes();
+      carregarProfessores();
     } catch (error) {
       mostrarSnackbar(error.message);
     }
   };
 
-  const removerInstituicao = (id) => {
+  const removerProfessor = (id) => {
     Alert.alert(
       'Confirmar Remoção',
-      'Tem certeza que deseja remover esta instituição?',
+      'Tem certeza que deseja remover este professor?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -122,9 +112,9 @@ const InstituicoesScreen = () => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await instituicoesService.remover(id);
-              mostrarSnackbar('Instituição removida com sucesso');
-              carregarInstituicoes();
+              await professoresService.remover(id);
+              mostrarSnackbar('Professor removido com sucesso');
+              carregarProfessores();
             } catch (error) {
               mostrarSnackbar(error.message);
             }
@@ -134,45 +124,43 @@ const InstituicoesScreen = () => {
     );
   };
 
-  const instituicoesFiltradas = instituicoes.filter((instituicao) =>
-    ['nome', 'sigla', 'cnpj', 'email', 'telefone'].some(field =>
-      instituicao[field]?.toLowerCase().includes(filtro.toLowerCase())
+  const professoresFiltrados = professores.filter((professor) =>
+    ['nome', 'email', 'telefone'].some(field =>
+      professor[field]?.toLowerCase().includes(filtro.toLowerCase())
     )
   );
 
-  const renderInstituicaoItem = (instituicao) => (
+  const renderProfessorItem = (professor) => (
     <>
-      <Title>{instituicao.nome}</Title>
-      <Paragraph>Sigla: {instituicao.sigla}</Paragraph>
-      <Paragraph>CNPJ: {instituicao.cnpj}</Paragraph>
-      <Paragraph>Email: {instituicao.email || 'N/A'}</Paragraph>
-      <Paragraph>Telefone: {instituicao.telefone || 'N/A'}</Paragraph>
+      <Title>{professor.nome}</Title>
+      <Paragraph>Email: {professor.email}</Paragraph>
+      <Paragraph>Telefone: {professor.telefone || 'N/A'}</Paragraph>
       <Chip
         mode="outlined"
         style={{ 
           alignSelf: 'flex-start', 
           marginTop: 8,
-          backgroundColor: instituicao.status ? '#e8f5e8' : '#ffeaea'
+          backgroundColor: professor.status ? '#e8f5e8' : '#ffeaea'
         }}
       >
-        {instituicao.status ? 'Ativo' : 'Inativo'}
+        {professor.status ? 'Ativo' : 'Inativo'}
       </Chip>
     </>
   );
 
   useEffect(() => {
-    carregarInstituicoes();
+    carregarProfessores();
   }, []);
 
   return (
     <View style={{ flex: 1 }}>
       <Appbar.Header>
-        <Appbar.Content title="Instituições" />
+        <Appbar.Content title="Professores" />
       </Appbar.Header>
 
       <View style={{ padding: 16 }}>
         <Searchbar
-          placeholder="Filtrar instituições..."
+          placeholder="Filtrar professores..."
           onChangeText={setFiltro}
           value={filtro}
           style={{ marginBottom: 16 }}
@@ -180,11 +168,11 @@ const InstituicoesScreen = () => {
       </View>
 
       <MobileList
-        data={instituicoesFiltradas}
-        renderItem={renderInstituicaoItem}
+        data={professoresFiltrados}
+        renderItem={renderProfessorItem}
         onEdit={abrirDialog}
-        onDelete={removerInstituicao}
-        emptyMessage="Nenhuma instituição encontrada"
+        onDelete={removerProfessor}
+        emptyMessage="Nenhum professor encontrado"
       />
 
       <FAB
@@ -201,7 +189,7 @@ const InstituicoesScreen = () => {
       <Portal>
         <Dialog visible={dialogVisible} onDismiss={fecharDialog}>
           <Dialog.Title>
-            {editingId ? 'Editar Instituição' : 'Nova Instituição'}
+            {editingId ? 'Editar Professor' : 'Novo Professor'}
           </Dialog.Title>
           <Dialog.ScrollArea>
             <ScrollView contentContainerStyle={{ paddingHorizontal: 24 }}>
@@ -211,35 +199,18 @@ const InstituicoesScreen = () => {
                 onChangeText={(text) => setFormData({ ...formData, nome: text })}
                 required
                 minLength={3}
-                maxLength={150}
+                maxLength={100}
                 forceShowError={showErrors}
               />
               
               <MobileInput
-                label="Sigla *"
-                value={formData.sigla}
-                onChangeText={(text) => setFormData({ ...formData, sigla: text })}
-                required
-                minLength={2}
-                maxLength={10}
-                forceShowError={showErrors}
-              />
-              
-              <MobileInput
-                label="CNPJ *"
-                value={formData.cnpj}
-                onChangeText={(text) => setFormData({ ...formData, cnpj: text })}
-                mask="cnpj"
-                required
-                forceShowError={showErrors}
-              />
-              
-              <MobileInput
-                label="Email"
+                label="Email *"
                 value={formData.email}
                 onChangeText={(text) => setFormData({ ...formData, email: text })}
                 keyboardType="email-address"
-                maxLength={50}
+                required
+                maxLength={100}
+                forceShowError={showErrors}
               />
               
               <MobileInput
@@ -249,16 +220,7 @@ const InstituicoesScreen = () => {
                 mask="telefone"
                 keyboardType="phone-pad"
               />
-              
-              <MobileInput
-                label="Endereço"
-                value={formData.endereco}
-                onChangeText={(text) => setFormData({ ...formData, endereco: text })}
-                multiline
-                numberOfLines={3}
-                maxLength={100}
-              />
-              
+
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                 <Text>Ativo: </Text>
                 <Switch
@@ -270,7 +232,7 @@ const InstituicoesScreen = () => {
           </Dialog.ScrollArea>
           <Dialog.Actions>
             <Button onPress={fecharDialog}>Cancelar</Button>
-            <Button onPress={salvarInstituicao} mode="contained">
+            <Button onPress={salvarProfessor} mode="contained">
               {editingId ? 'Atualizar' : 'Criar'}
             </Button>
           </Dialog.Actions>
@@ -288,4 +250,4 @@ const InstituicoesScreen = () => {
   );
 };
 
-export default InstituicoesScreen;
+export default ProfessoresScreen;
