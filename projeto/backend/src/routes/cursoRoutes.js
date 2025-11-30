@@ -4,7 +4,6 @@ const {
   listarCursos,
   buscarCursoPorId,
   atualizarCurso,
-  atualizarCursoParcial,
   removerCurso
 } = require('../controllers/cursoController');
 
@@ -217,48 +216,7 @@ router.get('/:id', buscarCursoPorId);
  */
 router.put('/:id', atualizarCurso);
 
-/**
- * @swagger
- * /api/v1/cursos/{id}:
- *   patch:
- *     summary: Atualização parcial de um curso
- *     tags: [Cursos]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID do curso
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               nome:
- *                 type: string
- *               codigo:
- *                 type: string
- *               turnos:
- *                 type: array
- *                 items:
- *                   type: string
- *                   enum: [manhã, tarde, noite]
- *               ativo:
- *                 type: boolean
- *           example:
- *             nome: "Curso Atualizado"
- *             turnos: ["noite"]
- *             ativo: false
- *     responses:
- *       200:
- *         description: Curso atualizado com sucesso
- *       404:
- *         description: Curso não encontrado
- */
-router.patch('/:id', atualizarCursoParcial);
+
 
 /**
  * @swagger

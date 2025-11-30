@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { VALIDATORS } = require('../utils/validationPatterns');
+
 
 /**
  * Schema para o modelo de Professores
@@ -33,12 +33,22 @@ const professorSchema = new mongoose.Schema({
     required: [true, 'Email é obrigatório'],
     trim: true,
     lowercase: true,
-    validate: VALIDATORS.email
+    validate: {
+      validator: function(v) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      },
+      message: 'Email deve ter um formato válido'
+    }
   },
   telefone: {
     type: String,
     trim: true,
-    validate: VALIDATORS.telefone
+    validate: {
+      validator: function(v) {
+        return !v || /^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(v);
+      },
+      message: 'Telefone deve estar no formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX'
+    }
   },
   status: {
     type: Boolean,

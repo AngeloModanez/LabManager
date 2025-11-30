@@ -1,5 +1,5 @@
 const Laboratorio = require('../models/Laboratorio');
-const { successResponse, successResponseWithPagination, notFoundResponse } = require('../utils/responseHelper');
+const { successResponse, successResponseWithPagination, errorResponse } = require('../utils/responseHelper');
 
 /**
  * Controller para operações CRUD de laboratórios
@@ -79,7 +79,7 @@ const atualizarLaboratorio = async (req, res, next) => {
     );
 
     if (!laboratorio) {
-      return notFoundResponse(res, 'Laboratório');
+      return errorResponse(res, 'Laboratório não encontrado', 404);
     }
 
     successResponse(res, laboratorio, 'Laboratório atualizado com sucesso');
@@ -99,51 +99,16 @@ const buscarLaboratorioPorId = async (req, res, next) => {
     const laboratorio = await Laboratorio.findById(req.params.id);
 
     if (!laboratorio) {
-      return res.status(404).json({
-        success: false,
-        message: 'Laboratório não encontrado'
-      });
+      return errorResponse(res, 'Laboratório não encontrado', 404);
     }
 
-    res.json({
-      success: true,
-      data: laboratorio
-    });
+    successResponse(res, laboratorio);
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * Atualização parcial de um laboratório por ID (PATCH)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @param {Function} next - Next function
- */
-const atualizarLaboratorioParcial = async (req, res, next) => {
-  try {
-    const laboratorio = await Laboratorio.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
 
-    if (!laboratorio) {
-      return res.status(404).json({
-        success: false,
-        message: 'Laboratório não encontrado'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: laboratorio,
-      message: 'Laboratório atualizado com sucesso'
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 /**
  * Remove um laboratório por ID
@@ -156,10 +121,7 @@ const removerLaboratorio = async (req, res, next) => {
     const laboratorio = await Laboratorio.findByIdAndDelete(req.params.id);
 
     if (!laboratorio) {
-      return res.status(404).json({
-        success: false,
-        message: 'Laboratório não encontrado'
-      });
+      return errorResponse(res, 'Laboratório não encontrado', 404);
     }
 
     res.status(204).send();
@@ -173,6 +135,5 @@ module.exports = {
   listarLaboratorios,
   buscarLaboratorioPorId,
   atualizarLaboratorio,
-  atualizarLaboratorioParcial,
   removerLaboratorio
 };

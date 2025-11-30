@@ -128,36 +128,7 @@ const buscarProfessorPorId = async (req, res, next) => {
   }
 };
 
-/**
- * Atualização parcial de um professor por ID (PATCH)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @param {Function} next - Next function
- */
-const atualizarProfessorParcial = async (req, res, next) => {
-  try {
-    const professor = await Professor.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
 
-    if (!professor) {
-      return res.status(404).json({
-        success: false,
-        message: 'Professor não encontrado'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: professor,
-      message: 'Professor atualizado com sucesso'
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 /**
  * Remove um professor por ID
@@ -198,6 +169,5 @@ module.exports = {
   listarProfessores,
   buscarProfessorPorId,
   atualizarProfessor,
-  atualizarProfessorParcial,
   removerProfessor
 };

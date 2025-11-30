@@ -4,7 +4,6 @@ const {
   listarBlocos,
   buscarBlocoPorId,
   atualizarBloco,
-  atualizarBlocoParcial,
   removerBloco
 } = require('../controllers/blocoController');
 
@@ -181,54 +180,7 @@ router.get('/:id', buscarBlocoPorId);
  */
 router.put('/:id', atualizarBloco);
 
-/**
- * @swagger
- * /api/v1/blocos/{id}:
- *   patch:
- *     summary: Atualização parcial de um bloco
- *     tags: [Blocos]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID do bloco
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               turno:
- *                 type: string
- *                 enum: [manhã, tarde, noite]
- *               dia_da_semana:
- *                 type: string
- *                 enum: [segunda, terça, quarta, quinta, sexta, sábado]
- *               inicio:
- *                 type: string
- *               fim:
- *                 type: string
- *               ordem:
- *                 type: number
- *               status:
- *                 type: boolean
- *           example:
- *             turno: "tarde"
- *             dia_da_semana: "terça"
- *             inicio: "14:00"
- *             fim: "14:50"
- *             ordem: 2
- *             status: false
- *     responses:
- *       200:
- *         description: Bloco atualizado com sucesso
- *       404:
- *         description: Bloco não encontrado
- */
-router.patch('/:id', atualizarBlocoParcial);
+
 
 /**
  * @swagger

@@ -1,32 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Alert } from 'react-native';
-import {
-  Appbar,
-  FAB,
-  Searchbar,
-  Snackbar,
-  Portal,
-  Dialog,
-  Button,
-  Switch,
-  Text,
-  Title,
-  Paragraph,
-  Chip,
-} from 'react-native-paper';
+import { ScrollView } from 'react-native';
+import { Portal, Dialog, Button, Title, Paragraph, Chip } from 'react-native-paper';
 import { instituicoesService } from '../../services/api';
+import { useMobileApi } from '../../hooks/useMobileApi';
 import MobileInput from '../common/MobileInput';
 import MobileList from '../common/MobileList';
 import MobileConfirmDialog from '../common/MobileConfirmDialog';
+import MobilePageTemplate from '../common/MobilePageTemplate';
 
 const InstituicoesScreen = ({ navigation }) => {
   const [instituicoes, setInstituicoes] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [filtro, setFiltro] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [showErrors, setShowErrors] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  
+  const { execute, loading } = useMobileApi(instituicoesService);
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -37,20 +30,13 @@ const InstituicoesScreen = ({ navigation }) => {
     endereco: '',
     status: true,
   });
-  const [showErrors, setShowErrors] = useState(false);
-  const [confirmVisible, setConfirmVisible] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
 
   const carregarInstituicoes = async () => {
-    setLoading(true);
     try {
-      const response = await instituicoesService.listar();
+      const response = await execute('listar');
       setInstituicoes(response.data.data || response.data || []);
     } catch (error) {
-      console.error('Erro ao carregar:', error);
       mostrarSnackbar('Erro ao carregar instituições');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -101,10 +87,10 @@ const InstituicoesScreen = ({ navigation }) => {
 
     try {
       if (editingId) {
-        await instituicoesService.atualizar(editingId, formData);
+        await execute('atualizar', editingId, formData);
         mostrarSnackbar('Instituição atualizada com sucesso');
       } else {
-        await instituicoesService.criar(formData);
+        await execute('criar', formData);
         mostrarSnackbar('Instituição criada com sucesso');
       }
       fecharDialog();
@@ -121,7 +107,7 @@ const InstituicoesScreen = ({ navigation }) => {
 
   const removerInstituicao = async () => {
     try {
-      await instituicoesService.remover(deletingId);
+      await execute('remover', deletingId);
       mostrarSnackbar('Instituição removida com sucesso');
       carregarInstituicoes();
     } catch (error) {
@@ -130,16 +116,10 @@ const InstituicoesScreen = ({ navigation }) => {
     setConfirmVisible(false);
   };
 
-  const instituicoesFiltradas = (instituicoes || []).filter((instituicao) =>
-    ['nome', 'sigla', 'cnpj', 'email', 'telefone'].some(field =>
-      instituicao[field]?.toLowerCase().includes(filtro.toLowerCase())
-    )
-  );
-
   const toggleStatus = async (instituicao) => {
     try {
       const novoStatus = !instituicao.status;
-      await instituicoesService.atualizar(instituicao._id, { status: novoStatus });
+      await execute('atualizar', instituicao._id, { status: novoStatus });
       setInstituicoes(prev => 
         prev.map(inst => 
           inst._id === instituicao._id 
@@ -152,6 +132,12 @@ const InstituicoesScreen = ({ navigation }) => {
       mostrarSnackbar('Erro ao alterar status');
     }
   };
+
+  const instituicoesFiltradas = (instituicoes || []).filter((instituicao) =>
+    ['nome', 'sigla', 'cnpj', 'email', 'telefone'].some(field =>
+      instituicao[field]?.toLowerCase().includes(filtro.toLowerCase())
+    )
+  );
 
   const renderInstituicaoItem = (instituicao) => (
     <>
@@ -167,8 +153,6 @@ const InstituicoesScreen = ({ navigation }) => {
           alignSelf: 'flex-start', 
           marginTop: 12,
           backgroundColor: instituicao.status ? '#e8f5e8' : '#ffeaea',
-          borderRadius: 20,
-          paddingHorizontal: 4
         }}
       >
         {instituicao.status ? 'Ativo' : 'Inativo'}
@@ -181,25 +165,15 @@ const InstituicoesScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
-
-        <Appbar.Content title="Instituições" titleStyle={{ color: '#fff' }} />
-      </Appbar.Header>
-
-      <View style={{ padding: 16, paddingBottom: 0 }}>
-        <Searchbar
-          placeholder="Filtrar instituições..."
-          onChangeText={setFiltro}
-          value={filtro}
-          style={{ 
-            marginBottom: 16,
-            borderRadius: 12,
-            elevation: 2
-          }}
-        />
-      </View>
-
+    <MobilePageTemplate
+      title="Instituições"
+      filtro={filtro}
+      setFiltro={setFiltro}
+      onAdd={() => abrirDialog()}
+      snackbarVisible={snackbarVisible}
+      snackbarMessage={snackbarMessage}
+      onSnackbarDismiss={() => setSnackbarVisible(false)}
+    >
       <MobileList
         data={instituicoesFiltradas}
         renderItem={renderInstituicaoItem}
@@ -208,40 +182,13 @@ const InstituicoesScreen = ({ navigation }) => {
         emptyMessage="Nenhuma instituição encontrada"
       />
 
-      <FAB
-        icon="plus"
-        style={{
-          position: 'absolute',
-          margin: 20,
-          right: 0,
-          bottom: 0,
-          borderRadius: 16,
-          elevation: 6
-        }}
-        customSize={56}
-        onPress={() => abrirDialog()}
-      />
-
       <Portal>
-        <Dialog 
-          visible={dialogVisible} 
-          onDismiss={fecharDialog}
-          style={{ borderRadius: 8 }}
-        >
-          <Dialog.Title style={{ 
-            textAlign: 'center',
-            fontSize: 20,
-            fontWeight: '600',
-            color: '#1976d2',
-            paddingBottom: 10
-          }}>
+        <Dialog visible={dialogVisible} onDismiss={fecharDialog}>
+          <Dialog.Title>
             {editingId ? 'Editar Instituição' : 'Nova Instituição'}
           </Dialog.Title>
           <Dialog.ScrollArea>
-            <ScrollView contentContainerStyle={{ 
-              paddingHorizontal: 24,
-              paddingVertical: 10
-            }}>
+            <ScrollView contentContainerStyle={{ paddingHorizontal: 24 }}>
               <MobileInput
                 label="Nome *"
                 value={formData.nome}
@@ -295,36 +242,11 @@ const InstituicoesScreen = ({ navigation }) => {
                 numberOfLines={3}
                 maxLength={100}
               />
-              
-
             </ScrollView>
           </Dialog.ScrollArea>
-          <Dialog.Actions style={{ 
-            paddingHorizontal: 24,
-            paddingVertical: 16,
-            gap: 12
-          }}>
-            <Button 
-              onPress={fecharDialog}
-              mode="outlined"
-              style={{ 
-                flex: 1,
-                borderRadius: 12,
-                borderColor: '#1976d2'
-              }}
-              labelStyle={{ color: '#1976d2' }}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onPress={salvarInstituicao} 
-              mode="contained"
-              style={{ 
-                flex: 1,
-                borderRadius: 12,
-                backgroundColor: '#1976d2'
-              }}
-            >
+          <Dialog.Actions>
+            <Button onPress={fecharDialog}>Cancelar</Button>
+            <Button onPress={salvarInstituicao} mode="contained">
               {editingId ? 'Atualizar' : 'Criar'}
             </Button>
           </Dialog.Actions>
@@ -338,15 +260,7 @@ const InstituicoesScreen = ({ navigation }) => {
         title="Excluir Instituição"
         message="Esta ação não pode ser desfeita. Todos os dados relacionados a esta instituição serão permanentemente removidos."
       />
-
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        duration={4000}
-      >
-        {snackbarMessage}
-      </Snackbar>
-    </View>
+    </MobilePageTemplate>
   );
 };
 

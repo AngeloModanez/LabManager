@@ -4,7 +4,6 @@ const {
   listarLaboratorios,
   buscarLaboratorioPorId,
   atualizarLaboratorio,
-  atualizarLaboratorioParcial,
   removerLaboratorio
 } = require('../controllers/laboratorioController');
 
@@ -162,46 +161,7 @@ router.get('/:id', buscarLaboratorioPorId);
  */
 router.put('/:id', atualizarLaboratorio);
 
-/**
- * @swagger
- * /api/v1/laboratorios/{id}:
- *   patch:
- *     summary: Atualização parcial de um laboratório
- *     tags: [Laboratórios]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID do laboratório
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               nome:
- *                 type: string
- *               capacidade:
- *                 type: integer
- *               localizacao:
- *                 type: string
- *               status:
- *                 type: boolean
- *           example:
- *             nome: "Laboratório Atualizado"
- *             capacidade: 35
- *             localizacao: "Bloco B - Sala 201"
- *             status: false
- *     responses:
- *       200:
- *         description: Laboratório atualizado com sucesso
- *       404:
- *         description: Laboratório não encontrado
- */
-router.patch('/:id', atualizarLaboratorioParcial);
+
 
 /**
  * @swagger

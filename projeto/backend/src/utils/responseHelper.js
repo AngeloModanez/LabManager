@@ -54,28 +54,8 @@ const errorResponse = (res, message, statusCode = 400, details = null) => {
   return res.status(statusCode).json(response);
 };
 
-/**
- * Resposta para recurso não encontrado
- * @param {Object} res - Response object
- * @param {string} resource - Nome do recurso
- */
-const notFoundResponse = (res, resource = 'Recurso') => {
-  return errorResponse(res, `${resource} não encontrado`, 404);
-};
-
-/**
- * Resposta para conflito (duplicação)
- * @param {Object} res - Response object
- * @param {string} message - Mensagem de conflito
- */
-const conflictResponse = (res, message) => {
-  return errorResponse(res, message, 409);
-};
-
 module.exports = {
   successResponse,
   successResponseWithPagination,
-  errorResponse,
-  notFoundResponse,
-  conflictResponse
+  errorResponse
 };

@@ -1,42 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Typography,
   Snackbar,
   Alert,
-  Switch,
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
 } from '@mui/icons-material';
 
-import Button from '../../components/common/Button/Button';
-import SearchBar from '../../components/common/SearchBar/SearchBar';
-import Modal from '../../components/common/Modal/Modal';
-import Input from '../../components/common/Input/Input';
-import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
+import { Button, SearchBar, Modal, Input, ConfirmDialog, DataTable } from '../../components/common';
 import { instituicoesService } from '../../services/api';
+import { useApi } from '../../hooks/useApi';
+import { useSnackbar } from '../../hooks/useSnackbar';
 
 const InstituicoesPage = () => {
   const [instituicoes, setInstituicoes] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [filtro, setFiltro] = useState('');
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [showErrors, setShowErrors] = useState(false);
+  
+  const { execute, loading } = useApi(instituicoesService);
+  const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -49,20 +36,13 @@ const InstituicoesPage = () => {
   });
 
   const carregarInstituicoes = useCallback(async () => {
-    setLoading(true);
     try {
-      const response = await instituicoesService.listar();
+      const response = await execute('listar');
       setInstituicoes(response.data.data || response.data);
     } catch (error) {
-      mostrarSnackbar('Erro ao carregar instituições', 'error');
-    } finally {
-      setLoading(false);
+      showSnackbar('Erro ao carregar instituições', 'error');
     }
-  }, []);
-
-  const mostrarSnackbar = useCallback((message, severity = 'success') => {
-    setSnackbar({ open: true, message, severity });
-  }, []);
+  }, [execute, showSnackbar]);
 
   const abrirModal = useCallback((instituicao = null) => {
     if (instituicao) {
@@ -89,6 +69,7 @@ const InstituicoesPage = () => {
       });
     }
     setModalOpen(true);
+    setShowErrors(false);
   }, []);
 
   const fecharModal = useCallback(() => {
@@ -104,17 +85,17 @@ const InstituicoesPage = () => {
     }
     try {
       if (editingId) {
-        await instituicoesService.atualizar(editingId, formData);
-        mostrarSnackbar('Instituição atualizada com sucesso');
+        await execute('atualizar', editingId, formData);
+        showSnackbar('Instituição atualizada com sucesso');
       } else {
-        await instituicoesService.criar(formData);
-        mostrarSnackbar('Instituição criada com sucesso');
+        await execute('criar', formData);
+        showSnackbar('Instituição criada com sucesso');
       }
       fecharModal();
       carregarInstituicoes();
     } catch (error) {
       const message = error.response?.data?.message || 'Erro ao salvar instituição';
-      mostrarSnackbar(message, 'error');
+      showSnackbar(message, 'error');
     }
   };
 
@@ -125,12 +106,28 @@ const InstituicoesPage = () => {
 
   const removerInstituicao = async () => {
     try {
-      await instituicoesService.remover(deletingId);
-      mostrarSnackbar('Instituição removida com sucesso');
+      await execute('remover', deletingId);
+      showSnackbar('Instituição removida com sucesso');
       carregarInstituicoes();
     } catch (error) {
       const message = error.response?.data?.message || 'Erro ao remover instituição';
-      mostrarSnackbar(message, 'error');
+      showSnackbar(message, 'error');
+    }
+  };
+
+  const handleToggleStatus = async (instituicao, novoStatus) => {
+    try {
+      await execute('atualizar', instituicao._id, { ...instituicao, status: novoStatus });
+      setInstituicoes(prev => 
+        prev.map(inst => 
+          inst._id === instituicao._id 
+            ? { ...inst, status: novoStatus }
+            : inst
+        )
+      );
+      showSnackbar(`Instituição ${novoStatus ? 'ativada' : 'desativada'} com sucesso`);
+    } catch (error) {
+      showSnackbar('Erro ao alterar status', 'error');
     }
   };
 
@@ -181,99 +178,20 @@ const InstituicoesPage = () => {
         </Button>
       </Box>
 
-      <TableContainer sx={{ 
-        flexGrow: 1, 
-        border: '1px solid', 
-        borderColor: 'divider', 
-        borderRadius: 1, 
-        overflowX: 'auto',
-        height: 'calc(100vh - 280px)',
-        overflowY: 'auto'
-      }}>
-        <Table 
-          size="small" 
-          stickyHeader
-          sx={{ 
-            '& .MuiTableCell-root': { px: 1 },
-            '& .MuiTableBody-root .MuiTableRow-root:nth-of-type(even)': {
-              backgroundColor: 'grey.50'
-            },
-            '& .MuiTableBody-root .MuiTableRow-root:hover': {
-              backgroundColor: 'grey.200'
-            }
-          }}
-        >
-          <TableHead sx={{ 
-            '& .MuiTableCell-head': {
-              backgroundColor: 'primary.main',
-              color: 'primary.contrastText',
-              fontWeight: 'bold'
-            }
-          }}>
-            <TableRow>
-              <TableCell sx={{ width: 300 }}>Nome</TableCell>
-              <TableCell sx={{ width: 70 }}>Sigla</TableCell>
-              <TableCell sx={{ width: 150 }}>CNPJ</TableCell>
-              <TableCell sx={{ width: 200 }}>Email</TableCell>
-              <TableCell sx={{ width: 120 }}>Telefone</TableCell>
-              <TableCell sx={{ width: 60 }}>Status</TableCell>
-              <TableCell sx={{ width: 80 }}>Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {instituicoesFiltradas.map((instituicao) => (
-              <TableRow key={instituicao._id}>
-                <TableCell>{instituicao.nome}</TableCell>
-                <TableCell>{instituicao.sigla}</TableCell>
-                <TableCell>{instituicao.cnpj}</TableCell>
-                <TableCell>{instituicao.email || 'N/A'}</TableCell>
-                <TableCell>{instituicao.telefone || 'N/A'}</TableCell>
-                <TableCell>
-                  <Switch
-                    checked={instituicao.status}
-                    onChange={async (e) => {
-                      const novoStatus = e.target.checked;
-                      try {
-                        await instituicoesService.atualizar(instituicao._id, { ...instituicao, status: novoStatus });
-                        setInstituicoes(prev => 
-                          prev.map(inst => 
-                            inst._id === instituicao._id 
-                              ? { ...inst, status: novoStatus }
-                              : inst
-                          )
-                        );
-                        mostrarSnackbar(`Instituição ${novoStatus ? 'ativada' : 'desativada'} com sucesso`);
-                      } catch (error) {
-                        mostrarSnackbar('Erro ao alterar status', 'error');
-                      }
-                    }}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', gap: 0.5 }}>
-                    <IconButton
-                      size="small"
-                      onClick={() => abrirModal(instituicao)}
-                      color="primary"
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => confirmarRemocao(instituicao._id)}
-                      color="error"
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ))
-          }
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <DataTable
+        columns={[
+          { field: 'nome', headerName: 'Nome', width: 300 },
+          { field: 'sigla', headerName: 'Sigla', width: 70 },
+          { field: 'cnpj', headerName: 'CNPJ', width: 150 },
+          { field: 'email', headerName: 'Email', width: 200 },
+          { field: 'telefone', headerName: 'Telefone', width: 120 },
+          { field: 'status', headerName: 'Status', width: 60 }
+        ]}
+        data={instituicoesFiltradas}
+        onEdit={abrirModal}
+        onDelete={confirmarRemocao}
+        onToggleStatus={handleToggleStatus}
+      />
 
       <Modal
         open={modalOpen}
@@ -360,10 +278,10 @@ const InstituicoesPage = () => {
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        onClose={hideSnackbar}
       >
         <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          onClose={hideSnackbar}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
         >

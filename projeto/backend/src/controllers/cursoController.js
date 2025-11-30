@@ -1,6 +1,6 @@
 const Curso = require('../models/Curso');
 const mongoose = require('mongoose');
-const { successResponse, successResponseWithPagination, notFoundResponse, errorResponse } = require('../utils/responseHelper');
+const { successResponse, successResponseWithPagination, errorResponse } = require('../utils/responseHelper');
 
 /**
  * Controller para operações CRUD de cursos
@@ -91,17 +91,10 @@ const atualizarCurso = async (req, res, next) => {
     ).populate('instituicaoId', 'nome sigla status');
 
     if (!curso) {
-      return res.status(404).json({
-        success: false,
-        message: 'Curso não encontrado'
-      });
+      return errorResponse(res, 'Curso não encontrado', 404);
     }
 
-    res.json({
-      success: true,
-      data: curso,
-      message: 'Curso atualizado com sucesso'
-    });
+    successResponse(res, curso, 'Curso atualizado com sucesso');
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({
@@ -124,51 +117,16 @@ const buscarCursoPorId = async (req, res, next) => {
       .populate('instituicaoId', 'nome sigla status');
 
     if (!curso) {
-      return res.status(404).json({
-        success: false,
-        message: 'Curso não encontrado'
-      });
+      return errorResponse(res, 'Curso não encontrado', 404);
     }
 
-    res.json({
-      success: true,
-      data: curso
-    });
+    successResponse(res, curso);
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * Atualização parcial de um curso por ID (PATCH)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @param {Function} next - Next function
- */
-const atualizarCursoParcial = async (req, res, next) => {
-  try {
-    const curso = await Curso.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    ).populate('instituicaoId', 'nome sigla status');
 
-    if (!curso) {
-      return res.status(404).json({
-        success: false,
-        message: 'Curso não encontrado'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: curso,
-      message: 'Curso atualizado com sucesso'
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 /**
  * Remove um curso por ID
@@ -192,10 +150,7 @@ const removerCurso = async (req, res, next) => {
     const curso = await Curso.findByIdAndDelete(req.params.id);
 
     if (!curso) {
-      return res.status(404).json({
-        success: false,
-        message: 'Curso não encontrado'
-      });
+      return errorResponse(res, 'Curso não encontrado', 404);
     }
 
     res.status(204).send();
@@ -209,6 +164,5 @@ module.exports = {
   listarCursos,
   buscarCursoPorId,
   atualizarCurso,
-  atualizarCursoParcial,
   removerCurso
 };

@@ -1,5 +1,5 @@
 const Bloco = require('../models/Bloco');
-const { successResponse, successResponseWithPagination, notFoundResponse } = require('../utils/responseHelper');
+const { successResponse, successResponseWithPagination, errorResponse } = require('../utils/responseHelper');
 
 /**
  * Controller para operações CRUD de blocos de horário
@@ -79,7 +79,7 @@ const atualizarBloco = async (req, res, next) => {
     );
 
     if (!bloco) {
-      return notFoundResponse(res, 'Bloco');
+      return errorResponse(res, 'Bloco não encontrado', 404);
     }
 
     successResponse(res, bloco, 'Bloco atualizado com sucesso');
@@ -99,47 +99,10 @@ const buscarBlocoPorId = async (req, res, next) => {
     const bloco = await Bloco.findById(req.params.id);
 
     if (!bloco) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bloco não encontrado'
-      });
+      return errorResponse(res, 'Bloco não encontrado', 404);
     }
 
-    res.json({
-      success: true,
-      data: bloco
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Atualização parcial de um bloco por ID (PATCH)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @param {Function} next - Next function
- */
-const atualizarBlocoParcial = async (req, res, next) => {
-  try {
-    const bloco = await Bloco.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-
-    if (!bloco) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bloco não encontrado'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: bloco,
-      message: 'Bloco atualizado com sucesso'
-    });
+    successResponse(res, bloco);
   } catch (error) {
     next(error);
   }
@@ -156,10 +119,7 @@ const removerBloco = async (req, res, next) => {
     const bloco = await Bloco.findByIdAndDelete(req.params.id);
 
     if (!bloco) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bloco não encontrado'
-      });
+      return errorResponse(res, 'Bloco não encontrado', 404);
     }
 
     res.status(204).send();
@@ -173,6 +133,5 @@ module.exports = {
   listarBlocos,
   buscarBlocoPorId,
   atualizarBloco,
-  atualizarBlocoParcial,
   removerBloco
 };

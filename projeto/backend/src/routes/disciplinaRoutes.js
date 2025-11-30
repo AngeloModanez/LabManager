@@ -4,7 +4,6 @@ const {
   listarDisciplinas,
   buscarDisciplinaPorId,
   atualizarDisciplina,
-  atualizarDisciplinaParcial,
   removerDisciplina
 } = require('../controllers/disciplinaController');
 
@@ -175,47 +174,7 @@ router.get('/:id', buscarDisciplinaPorId);
  */
 router.put('/:id', atualizarDisciplina);
 
-/**
- * @swagger
- * /api/v1/disciplinas/{id}:
- *   patch:
- *     summary: Atualização parcial de uma disciplina
- *     tags: [Disciplinas]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID da disciplina
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               nome:
- *                 type: string
- *               cursoId:
- *                 type: string
- *               cargaHoraria:
- *                 type: integer
- *               professorId:
- *                 type: string
- *               status:
- *                 type: boolean
- *           example:
- *             nome: "Disciplina Atualizada"
- *             cargaHoraria: 60
- *             status: false
- *     responses:
- *       200:
- *         description: Disciplina atualizada com sucesso
- *       404:
- *         description: Disciplina não encontrada
- */
-router.patch('/:id', atualizarDisciplinaParcial);
+
 
 /**
  * @swagger

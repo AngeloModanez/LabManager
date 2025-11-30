@@ -1,6 +1,6 @@
 const Disciplina = require('../models/Disciplina');
 const mongoose = require('mongoose');
-const { successResponse, successResponseWithPagination, notFoundResponse, errorResponse } = require('../utils/responseHelper');
+const { successResponse, successResponseWithPagination, errorResponse } = require('../utils/responseHelper');
 
 /**
  * Controller para operações CRUD de disciplinas
@@ -127,7 +127,7 @@ const atualizarDisciplina = async (req, res, next) => {
     );
 
     if (!disciplina) {
-      return notFoundResponse(res, 'Disciplina');
+      return errorResponse(res, 'Disciplina não encontrada', 404);
     }
 
     successResponse(res, disciplina, 'Disciplina atualizada com sucesso');
@@ -154,68 +154,16 @@ const buscarDisciplinaPorId = async (req, res, next) => {
       .populate('professorId', 'nome email status');
 
     if (!disciplina) {
-      return res.status(404).json({
-        success: false,
-        message: 'Disciplina não encontrada'
-      });
+      return errorResponse(res, 'Disciplina não encontrada', 404);
     }
 
-    res.json({
-      success: true,
-      data: disciplina
-    });
+    successResponse(res, disciplina);
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * Atualização parcial de uma disciplina por ID (PATCH)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @param {Function} next - Next function
- */
-const atualizarDisciplinaParcial = async (req, res, next) => {
-  try {
-    const { cursoId, professorId } = req.body;
-    
-    if (cursoId && !mongoose.Types.ObjectId.isValid(cursoId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'ID do curso inválido'
-      });
-    }
-    
-    if (professorId && !mongoose.Types.ObjectId.isValid(professorId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'ID do professor inválido'
-      });
-    }
 
-    const disciplina = await Disciplina.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    ).populate('cursoId', 'nome codigo status')
-     .populate('professorId', 'nome email status');
-
-    if (!disciplina) {
-      return res.status(404).json({
-        success: false,
-        message: 'Disciplina não encontrada'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: disciplina,
-      message: 'Disciplina atualizada com sucesso'
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 /**
  * Remove uma disciplina por ID
@@ -228,10 +176,7 @@ const removerDisciplina = async (req, res, next) => {
     const disciplina = await Disciplina.findByIdAndDelete(req.params.id);
 
     if (!disciplina) {
-      return res.status(404).json({
-        success: false,
-        message: 'Disciplina não encontrada'
-      });
+      return errorResponse(res, 'Disciplina não encontrada', 404);
     }
 
     res.status(204).send();
@@ -245,6 +190,5 @@ module.exports = {
   listarDisciplinas,
   buscarDisciplinaPorId,
   atualizarDisciplina,
-  atualizarDisciplinaParcial,
   removerDisciplina
 };

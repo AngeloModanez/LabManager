@@ -4,7 +4,6 @@ const {
   listarProfessores,
   buscarProfessorPorId,
   atualizarProfessor,
-  atualizarProfessorParcial,
   removerProfessor
 } = require('../controllers/professorController');
 
@@ -155,46 +154,7 @@ router.get('/:id', buscarProfessorPorId);
  */
 router.put('/:id', atualizarProfessor);
 
-/**
- * @swagger
- * /api/v1/professores/{id}:
- *   patch:
- *     summary: Atualização parcial de um professor
- *     tags: [Professores]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID do professor
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               nome:
- *                 type: string
- *               email:
- *                 type: string
- *               telefone:
- *                 type: string
- *               status:
- *                 type: boolean
- *           example:
- *             nome: "Professor Atualizado"
- *             email: "email.example@email.com"
- *             telefone: "(99) 99999-9999"
- *             status: false
- *     responses:
- *       200:
- *         description: Professor atualizado com sucesso
- *       404:
- *         description: Professor não encontrado
- */
-router.patch('/:id', atualizarProfessorParcial);
+
 
 /**
  * @swagger
