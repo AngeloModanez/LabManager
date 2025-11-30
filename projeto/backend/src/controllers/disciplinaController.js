@@ -77,7 +77,7 @@ const listarDisciplinas = async (req, res, next) => {
 
     const skip = (page - 1) * limit;
     const disciplinas = await Disciplina.find(filter)
-      .populate('cursoId', 'nome codigo status')
+      .populate('cursoId', 'nome sigla status')
       .populate('professorId', 'nome email status')
       .skip(skip)
       .limit(parseInt(limit))
@@ -150,7 +150,7 @@ const atualizarDisciplina = async (req, res, next) => {
 const buscarDisciplinaPorId = async (req, res, next) => {
   try {
     const disciplina = await Disciplina.findById(req.params.id)
-      .populate('cursoId', 'nome codigo status')
+      .populate('cursoId', 'nome sigla status')
       .populate('professorId', 'nome email status');
 
     if (!disciplina) {
@@ -173,6 +173,17 @@ const buscarDisciplinaPorId = async (req, res, next) => {
  */
 const removerDisciplina = async (req, res, next) => {
   try {
+    // Verificar se há aulas vinculadas
+    const Aula = require('../models/Aula');
+    const aulasVinculadas = await Aula.countDocuments({ disciplinaId: req.params.id });
+    
+    if (aulasVinculadas > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível excluir disciplina com aulas vinculadas'
+      });
+    }
+
     const disciplina = await Disciplina.findByIdAndDelete(req.params.id);
 
     if (!disciplina) {

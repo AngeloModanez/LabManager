@@ -116,6 +116,17 @@ const buscarBlocoPorId = async (req, res, next) => {
  */
 const removerBloco = async (req, res, next) => {
   try {
+    // Verificar se há aulas vinculadas
+    const Aula = require('../models/Aula');
+    const aulasVinculadas = await Aula.countDocuments({ blocos: req.params.id });
+    
+    if (aulasVinculadas > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível excluir bloco com aulas vinculadas'
+      });
+    }
+
     const bloco = await Bloco.findByIdAndDelete(req.params.id);
 
     if (!bloco) {

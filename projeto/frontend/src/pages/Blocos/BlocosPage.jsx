@@ -473,6 +473,7 @@ const BlocosPage = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+        sx={{ zIndex: 9999 }}
       >
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}

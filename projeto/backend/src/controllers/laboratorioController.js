@@ -118,6 +118,17 @@ const buscarLaboratorioPorId = async (req, res, next) => {
  */
 const removerLaboratorio = async (req, res, next) => {
   try {
+    // Verificar se há aulas vinculadas
+    const Aula = require('../models/Aula');
+    const aulasVinculadas = await Aula.countDocuments({ laboratorioId: req.params.id });
+    
+    if (aulasVinculadas > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível excluir laboratório com aulas vinculadas'
+      });
+    }
+
     const laboratorio = await Laboratorio.findByIdAndDelete(req.params.id);
 
     if (!laboratorio) {

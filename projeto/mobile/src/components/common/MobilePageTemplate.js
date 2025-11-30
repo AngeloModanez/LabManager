@@ -12,16 +12,19 @@ const MobilePageTemplate = ({
   snackbarMessage,
   onSnackbarDismiss,
   showBackButton = false,
+  showHeader = true,
   onBack
 }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
-        {showBackButton && (
-          <Appbar.BackAction onPress={onBack} color="#fff" />
-        )}
-        <Appbar.Content title={title} titleStyle={{ color: '#fff' }} />
-      </Appbar.Header>
+      {showHeader && (
+        <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
+          {showBackButton && (
+            <Appbar.BackAction onPress={onBack} color="#fff" />
+          )}
+          <Appbar.Content title={title} titleStyle={{ color: '#fff' }} />
+        </Appbar.Header>
+      )}
 
       <View style={{ padding: 16, paddingBottom: 0 }}>
         <Searchbar

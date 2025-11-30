@@ -7,6 +7,7 @@ import MobileInput from '../common/MobileInput';
 import MobileList from '../common/MobileList';
 import MobileConfirmDialog from '../common/MobileConfirmDialog';
 import MobilePageTemplate from '../common/MobilePageTemplate';
+import MainLayout from '../Layout/MainLayout';
 
 const InstituicoesScreen = ({ navigation }) => {
   const [instituicoes, setInstituicoes] = useState([]);
@@ -165,15 +166,17 @@ const InstituicoesScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <MobilePageTemplate
-      title="Instituições"
-      filtro={filtro}
-      setFiltro={setFiltro}
-      onAdd={() => abrirDialog()}
-      snackbarVisible={snackbarVisible}
-      snackbarMessage={snackbarMessage}
-      onSnackbarDismiss={() => setSnackbarVisible(false)}
-    >
+    <MainLayout title="Instituições" navigation={navigation}>
+      <MobilePageTemplate
+        title="Instituições"
+        filtro={filtro}
+        setFiltro={setFiltro}
+        onAdd={() => abrirDialog()}
+        snackbarVisible={snackbarVisible}
+        snackbarMessage={snackbarMessage}
+        onSnackbarDismiss={() => setSnackbarVisible(false)}
+        showHeader={false}
+      >
       <MobileList
         data={instituicoesFiltradas}
         renderItem={renderInstituicaoItem}
@@ -260,7 +263,8 @@ const InstituicoesScreen = ({ navigation }) => {
         title="Excluir Instituição"
         message="Esta ação não pode ser desfeita. Todos os dados relacionados a esta instituição serão permanentemente removidos."
       />
-    </MobilePageTemplate>
+      </MobilePageTemplate>
+    </MainLayout>
   );
 };
 

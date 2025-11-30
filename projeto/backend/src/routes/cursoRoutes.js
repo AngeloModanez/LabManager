@@ -24,9 +24,9 @@ const router = express.Router();
  *           type: string
  *           description: Nome do curso
  *           example: "Análise e Desenvolvimento de Sistemas"
- *         codigo:
+ *         sigla:
  *           type: string
- *           description: Código do curso
+ *           description: Sigla do curso
  *           example: "ADS"
  *         instituicaoId:
  *           type: string
@@ -57,7 +57,7 @@ const router = express.Router();
  *             $ref: '#/components/schemas/Curso'
  *           example:
  *             nome: "Análise e Desenvolvimento de Sistemas"
- *             codigo: "ADS"
+ *             sigla: "ADS"
  *             turnos: ["manhã", "tarde"]
  *             instituicaoId: ""
  *             ativo: true

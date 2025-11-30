@@ -28,6 +28,12 @@ const disciplinaSchema = new mongoose.Schema({
       message: 'Nome não pode conter apenas números ou caracteres especiais'
     }
   },
+  sigla: {
+    type: String,
+    trim: true,
+    uppercase: true,
+    maxlength: [10, 'Sigla deve ter no máximo 10 caracteres']
+  },
   cursoId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Curso',

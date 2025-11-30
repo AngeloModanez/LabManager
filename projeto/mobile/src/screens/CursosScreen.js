@@ -19,6 +19,7 @@ import MobileInput from '../components/common/MobileInput';
 import MobileSelectRemoto from '../components/common/MobileSelectRemoto';
 import MobileList from '../components/common/MobileList';
 import MobileConfirmDialog from '../components/common/MobileConfirmDialog';
+import MainLayout from '../components/Layout/MainLayout';
 
 const CursosScreen = ({ navigation }) => {
   const [cursos, setCursos] = useState([]);
@@ -35,7 +36,7 @@ const CursosScreen = ({ navigation }) => {
   
   const [formData, setFormData] = useState({
     nome: '',
-    codigo: '',
+    sigla: '',
     instituicaoId: '',
     turnos: [],
     status: true,
@@ -72,7 +73,7 @@ const CursosScreen = ({ navigation }) => {
       setEditingId(curso._id);
       setFormData({
         nome: curso.nome || '',
-        codigo: curso.codigo || '',
+        sigla: curso.sigla || '',
         instituicaoId: curso.instituicaoId?._id || curso.instituicaoId || '',
         turnos: curso.turnos || [],
         status: curso.status !== undefined ? curso.status : true,
@@ -81,7 +82,7 @@ const CursosScreen = ({ navigation }) => {
       setEditingId(null);
       setFormData({
         nome: '',
-        codigo: '',
+        sigla: '',
         instituicaoId: '',
         turnos: [],
         status: true,
@@ -144,7 +145,7 @@ const CursosScreen = ({ navigation }) => {
   };
 
   const cursosFiltrados = cursos.filter((curso) =>
-    ['nome', 'codigo'].some(field =>
+    ['nome', 'sigla'].some(field =>
       curso[field]?.toLowerCase().includes(filtro.toLowerCase())
     ) || curso.instituicaoId?.nome?.toLowerCase().includes(filtro.toLowerCase())
   );
@@ -174,7 +175,7 @@ const CursosScreen = ({ navigation }) => {
   const renderCursoItem = (curso) => (
     <>
       <Title>{curso.nome}</Title>
-      <Paragraph>Código: {curso.codigo || 'N/A'}</Paragraph>
+      <Paragraph>Sigla: {curso.sigla || 'N/A'}</Paragraph>
       <Paragraph>Instituição: {curso.instituicaoId?.nome || 'N/A'}</Paragraph>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
         {curso.turnos?.map((turno) => (
@@ -203,11 +204,8 @@ const CursosScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
-
-        <Appbar.Content title="Cursos" titleStyle={{ color: '#fff' }} />
-      </Appbar.Header>
+    <MainLayout title="Cursos" navigation={navigation}>
+      <View style={{ flex: 1, backgroundColor: '#fff' }}>
 
       <View style={{ padding: 16, paddingBottom: 0 }}>
         <Searchbar
@@ -263,10 +261,10 @@ const CursosScreen = ({ navigation }) => {
               />
               
               <MobileInput
-                label="Código"
-                value={formData.codigo}
-                onChangeText={(text) => setFormData({ ...formData, codigo: text })}
-                maxLength={20}
+                label="Sigla"
+                value={formData.sigla}
+                onChangeText={(text) => setFormData({ ...formData, sigla: text })}
+                maxLength={10}
               />
 
               <MobileSelectRemoto
@@ -324,7 +322,8 @@ const CursosScreen = ({ navigation }) => {
       >
         {snackbarMessage}
       </Snackbar>
-    </View>
+      </View>
+    </MainLayout>
   );
 };
 

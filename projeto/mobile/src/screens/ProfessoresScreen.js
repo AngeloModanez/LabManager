@@ -18,6 +18,7 @@ import { professoresService } from '../services/api';
 import MobileInput from '../components/common/MobileInput';
 import MobileList from '../components/common/MobileList';
 import MobileConfirmDialog from '../components/common/MobileConfirmDialog';
+import MainLayout from '../components/Layout/MainLayout';
 
 const ProfessoresScreen = ({ navigation }) => {
   const [professores, setProfessores] = useState([]);
@@ -167,11 +168,8 @@ const ProfessoresScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
-
-        <Appbar.Content title="Professores" titleStyle={{ color: '#fff' }} />
-      </Appbar.Header>
+    <MainLayout title="Professores" navigation={navigation}>
+      <View style={{ flex: 1, backgroundColor: '#fff' }}>
 
       <View style={{ padding: 16, paddingBottom: 0 }}>
         <Searchbar
@@ -271,7 +269,8 @@ const ProfessoresScreen = ({ navigation }) => {
       >
         {snackbarMessage}
       </Snackbar>
-    </View>
+      </View>
+    </MainLayout>
   );
 };
 

@@ -26,6 +26,10 @@ const router = express.Router();
  *           type: string
  *           description: Nome da disciplina
  *           minLength: 3
+ *         sigla:
+ *           type: string
+ *           description: Sigla da disciplina
+ *           maxLength: 10
  *         cursoId:
  *           type: string
  *           description: ID do curso
@@ -56,6 +60,7 @@ const router = express.Router();
  *             $ref: '#/components/schemas/Disciplina'
  *           example:
  *             nome: "Programação Orientada a Objetos"
+ *             sigla: "POO"
  *             cursoId: "507f1f77bcf86cd799439011"
  *             cargaHoraria: 80
  *             professorId: "507f1f77bcf86cd799439012"

@@ -149,6 +149,17 @@ const removerProfessor = async (req, res, next) => {
       });
     }
 
+    // Verificar se há aulas vinculadas
+    const Aula = require('../models/Aula');
+    const aulasVinculadas = await Aula.countDocuments({ professorId: req.params.id });
+    
+    if (aulasVinculadas > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível excluir professor com aulas vinculadas'
+      });
+    }
+
     const professor = await Professor.findByIdAndDelete(req.params.id);
 
     if (!professor) {
