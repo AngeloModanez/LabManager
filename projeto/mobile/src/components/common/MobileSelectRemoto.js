@@ -6,12 +6,13 @@ import { Menu, Button, Text, HelperText } from 'react-native-paper';
  * Componente de select remoto reutilizável
  * @param {Object} props - Props do componente
  * @param {string} props.label - Label do select
- * @param {string} props.value - Valor selecionado
+ * @param {string|Array} props.value - Valor selecionado (string para single, array para multiple)
  * @param {Function} props.onValueChange - Função chamada quando valor muda
  * @param {Array} props.options - Array de opções {label, value}
  * @param {boolean} props.required - Se é obrigatório
  * @param {boolean} props.forceShowError - Força exibição de erro
  * @param {string} props.placeholder - Placeholder quando nenhum valor selecionado
+ * @param {boolean} props.multiple - Se permite seleção múltipla
  */
 const MobileSelectRemoto = ({
   label,
@@ -22,12 +23,14 @@ const MobileSelectRemoto = ({
   forceShowError = false,
   placeholder = 'Selecione...',
   disabled = false,
+  multiple = false,
 }) => {
   const [visible, setVisible] = useState(false);
   const [touched, setTouched] = useState(false);
 
-  const selectedOption = options.find(option => option.value === value);
-  const hasError = (touched || forceShowError) && required && !value;
+  const selectedOption = multiple ? null : options.find(option => option.value === value);
+  const selectedOptions = multiple ? options.filter(option => value?.includes(option.value)) : [];
+  const hasError = (touched || forceShowError) && required && (multiple ? (!value || value.length === 0) : !value);
 
   const openMenu = () => {
     if (!disabled) {
@@ -39,8 +42,28 @@ const MobileSelectRemoto = ({
   const closeMenu = () => setVisible(false);
 
   const selectOption = (optionValue) => {
-    onValueChange(optionValue);
-    closeMenu();
+    if (multiple) {
+      const currentValues = value || [];
+      const newValues = currentValues.includes(optionValue)
+        ? currentValues.filter(v => v !== optionValue)
+        : [...currentValues, optionValue];
+      onValueChange(newValues);
+    } else {
+      onValueChange(optionValue);
+      closeMenu();
+    }
+  };
+
+  const getDisplayText = () => {
+    if (multiple) {
+      if (!value || value.length === 0) return placeholder;
+      if (value.length === 1) {
+        const option = options.find(opt => opt.value === value[0]);
+        return option ? option.label : placeholder;
+      }
+      return `${value.length} selecionados`;
+    }
+    return selectedOption ? selectedOption.label : placeholder;
   };
 
   return (
@@ -66,22 +89,32 @@ const MobileSelectRemoto = ({
             }}
           >
             <Text style={{ 
-              color: selectedOption ? undefined : '#666',
+              color: (multiple ? (value && value.length > 0) : selectedOption) ? undefined : '#666',
               textAlign: 'left',
               flex: 1
             }}>
-              {selectedOption ? selectedOption.label : placeholder}
+              {getDisplayText()}
             </Text>
           </Button>
         }
       >
-        {options.map((option) => (
-          <Menu.Item
-            key={option.value}
-            onPress={() => selectOption(option.value)}
-            title={option.label}
-          />
-        ))}
+        {options.map((option) => {
+          const isSelected = multiple 
+            ? value?.includes(option.value)
+            : value === option.value;
+          
+          return (
+            <Menu.Item
+              key={option.value}
+              onPress={() => selectOption(option.value)}
+              title={option.label}
+              titleStyle={{
+                color: isSelected ? '#1976d2' : undefined,
+                fontWeight: isSelected ? 'bold' : 'normal'
+              }}
+            />
+          );
+        })}
       </Menu>
       
       {hasError && (

@@ -47,7 +47,7 @@ const CursosPage = () => {
   
   const [formData, setFormData] = useState({
     nome: '',
-    codigo: '',
+    sigla: '',
     instituicaoId: '',
     turnos: [],
     status: true,
@@ -83,7 +83,7 @@ const CursosPage = () => {
       setEditingId(curso._id);
       setFormData({
         nome: curso.nome || '',
-        codigo: curso.codigo || '',
+        sigla: curso.sigla || '',
         instituicaoId: curso.instituicaoId?._id || curso.instituicaoId || '',
         turnos: curso.turnos || [],
         status: curso.status !== undefined ? curso.status : true,
@@ -92,7 +92,7 @@ const CursosPage = () => {
       setEditingId(null);
       setFormData({
         nome: '',
-        codigo: '',
+        sigla: '',
         instituicaoId: '',
         turnos: [],
         status: true,
@@ -160,7 +160,7 @@ const CursosPage = () => {
   }, []);
 
   const cursosFiltrados = cursos.filter((curso) =>
-    ['nome', 'codigo'].some(field =>
+    ['nome', 'sigla'].some(field =>
       curso[field]?.toLowerCase().includes(filtro.toLowerCase())
     ) || curso.instituicaoId?.nome?.toLowerCase().includes(filtro.toLowerCase())
   );
@@ -231,7 +231,7 @@ const CursosPage = () => {
           }}>
             <TableRow>
               <TableCell sx={{ width: 250 }}>Nome</TableCell>
-              <TableCell sx={{ width: 100 }}>Código</TableCell>
+              <TableCell sx={{ width: 100 }}>Sigla</TableCell>
               <TableCell sx={{ width: 200 }}>Instituição</TableCell>
               <TableCell sx={{ width: 200 }}>Turnos</TableCell>
               <TableCell sx={{ width: 60 }}>Status</TableCell>
@@ -242,7 +242,7 @@ const CursosPage = () => {
             {cursosFiltrados.map((curso) => (
               <TableRow key={curso._id}>
                 <TableCell>{curso.nome}</TableCell>
-                <TableCell>{curso.codigo || 'N/A'}</TableCell>
+                <TableCell>{curso.sigla || 'N/A'}</TableCell>
                 <TableCell>
                   {curso.instituicaoId?.nome || 'N/A'}
                   {curso.instituicaoId && !curso.instituicaoId.status && (
@@ -325,10 +325,10 @@ const CursosPage = () => {
               forceShowError={showErrors}
             />
             <Input
-              label="Código"
-              value={formData.codigo}
-              onChange={handleFormChange('codigo')}
-              maxLength={20}
+              label="Sigla"
+              value={formData.sigla}
+              onChange={handleFormChange('sigla')}
+              maxLength={10}
               size="small"
             />
           </Box>
@@ -404,6 +404,7 @@ const CursosPage = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+        sx={{ zIndex: 9999 }}
       >
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}

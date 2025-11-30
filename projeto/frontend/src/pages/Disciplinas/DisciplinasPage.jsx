@@ -47,6 +47,7 @@ const DisciplinasPage = () => {
   
   const [formData, setFormData] = useState({
     nome: '',
+    sigla: '',
     cursoId: '',
     cargaHoraria: '',
     professorId: '',
@@ -92,6 +93,7 @@ const DisciplinasPage = () => {
       setEditingId(disciplina._id);
       setFormData({
         nome: disciplina.nome || '',
+        sigla: disciplina.sigla || '',
         cursoId: disciplina.cursoId?._id || disciplina.cursoId || '',
         cargaHoraria: disciplina.cargaHoraria || '',
         professorId: disciplina.professorId?._id || disciplina.professorId || '',
@@ -101,6 +103,7 @@ const DisciplinasPage = () => {
       setEditingId(null);
       setFormData({
         nome: '',
+        sigla: '',
         cursoId: '',
         cargaHoraria: '',
         professorId: '',
@@ -249,10 +252,11 @@ const DisciplinasPage = () => {
             }
           }}>
             <TableRow>
-              <TableCell sx={{ width: 250 }}>Nome</TableCell>
-              <TableCell sx={{ width: 200 }}>Curso</TableCell>
-              <TableCell sx={{ width: 120 }}>Carga Horária</TableCell>
-              <TableCell sx={{ width: 200 }}>Professor</TableCell>
+              <TableCell sx={{ width: 200 }}>Nome</TableCell>
+              <TableCell sx={{ width: 80 }}>Sigla</TableCell>
+              <TableCell sx={{ width: 180 }}>Curso</TableCell>
+              <TableCell sx={{ width: 100 }}>Carga Horária</TableCell>
+              <TableCell sx={{ width: 180 }}>Professor</TableCell>
               <TableCell sx={{ width: 60 }}>Status</TableCell>
               <TableCell sx={{ width: 80 }}>Ações</TableCell>
             </TableRow>
@@ -261,6 +265,7 @@ const DisciplinasPage = () => {
             {disciplinasFiltradas.map((disciplina) => (
               <TableRow key={disciplina._id}>
                 <TableCell>{disciplina.nome}</TableCell>
+                <TableCell>{disciplina.sigla || 'N/A'}</TableCell>
                 <TableCell>
                   {disciplina.cursoId?.nome || 'N/A'}
                   {disciplina.cursoId && !disciplina.cursoId.status && (
@@ -333,16 +338,28 @@ const DisciplinasPage = () => {
         fullWidth
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Input
-            label="Nome *"
-            value={formData.nome}
-            onChange={handleFormChange('nome')}
-            required
-            minLength={3}
-            maxLength={100}
-            size="small"
-            forceShowError={showErrors}
-          />
+          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <Input
+              label="Nome *"
+              value={formData.nome}
+              onChange={handleFormChange('nome')}
+              required
+              minLength={3}
+              maxLength={100}
+              size="small"
+              forceShowError={showErrors}
+              sx={{ flex: 1 }}
+            />
+            
+            <Input
+              label="Sigla"
+              value={formData.sigla}
+              onChange={handleFormChange('sigla')}
+              maxLength={10}
+              size="small"
+              sx={{ flex: 1 }}
+            />
+          </Box>
           
           <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
             <FormControl size="small" required sx={{ flex: 1 }}>
@@ -437,6 +454,7 @@ const DisciplinasPage = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+        sx={{ zIndex: 9999 }}
       >
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}

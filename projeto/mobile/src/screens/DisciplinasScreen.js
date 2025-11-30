@@ -19,6 +19,7 @@ import MobileInput from '../components/common/MobileInput';
 import MobileSelectRemoto from '../components/common/MobileSelectRemoto';
 import MobileList from '../components/common/MobileList';
 import MobileConfirmDialog from '../components/common/MobileConfirmDialog';
+import MainLayout from '../components/Layout/MainLayout';
 
 const DisciplinasScreen = ({ navigation }) => {
   const [disciplinas, setDisciplinas] = useState([]);
@@ -36,7 +37,7 @@ const DisciplinasScreen = ({ navigation }) => {
   
   const [formData, setFormData] = useState({
     nome: '',
-    codigo: '',
+    sigla: '',
     carga_horaria: '',
     cursoId: '',
     professorId: '',
@@ -83,7 +84,7 @@ const DisciplinasScreen = ({ navigation }) => {
       setEditingId(disciplina._id);
       setFormData({
         nome: disciplina.nome || '',
-        codigo: disciplina.codigo || '',
+        sigla: disciplina.sigla || '',
         carga_horaria: disciplina.cargaHoraria?.toString() || '',
         cursoId: disciplina.cursoId?._id || disciplina.cursoId || '',
         professorId: disciplina.professorId?._id || disciplina.professorId || '',
@@ -93,7 +94,7 @@ const DisciplinasScreen = ({ navigation }) => {
       setEditingId(null);
       setFormData({
         nome: '',
-        codigo: '',
+        sigla: '',
         carga_horaria: '',
         cursoId: '',
         professorId: '',
@@ -119,7 +120,7 @@ const DisciplinasScreen = ({ navigation }) => {
     try {
       const dataToSend = {
         nome: formData.nome,
-        codigo: formData.codigo || undefined,
+        sigla: formData.sigla || undefined,
         cargaHoraria: parseInt(formData.carga_horaria),
         cursoId: formData.cursoId,
         professorId: formData.professorId || undefined,
@@ -157,7 +158,7 @@ const DisciplinasScreen = ({ navigation }) => {
   };
 
   const disciplinasFiltradas = disciplinas.filter((disciplina) =>
-    ['nome', 'codigo'].some(field =>
+    ['nome', 'sigla'].some(field =>
       disciplina[field]?.toLowerCase().includes(filtro.toLowerCase())
     ) || disciplina.cursoId?.nome?.toLowerCase().includes(filtro.toLowerCase()) ||
     disciplina.professorId?.nome?.toLowerCase().includes(filtro.toLowerCase())
@@ -193,7 +194,7 @@ const DisciplinasScreen = ({ navigation }) => {
   const renderDisciplinaItem = (disciplina) => (
     <>
       <Title>{disciplina.nome}</Title>
-      <Paragraph>Código: {disciplina.codigo || 'N/A'}</Paragraph>
+      <Paragraph>Sigla: {disciplina.sigla || 'N/A'}</Paragraph>
       <Paragraph>Carga Horária: {disciplina.cargaHoraria}h</Paragraph>
       <Paragraph>Curso: {disciplina.cursoId?.nome || 'N/A'}</Paragraph>
       <Paragraph>Professor: {disciplina.professorId?.nome || 'N/A'}</Paragraph>
@@ -218,11 +219,8 @@ const DisciplinasScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
-
-        <Appbar.Content title="Disciplinas" titleStyle={{ color: '#fff' }} />
-      </Appbar.Header>
+    <MainLayout title="Disciplinas" navigation={navigation}>
+      <View style={{ flex: 1, backgroundColor: '#fff' }}>
 
       <View style={{ padding: 16, paddingBottom: 0 }}>
         <Searchbar
@@ -278,10 +276,10 @@ const DisciplinasScreen = ({ navigation }) => {
               />
               
               <MobileInput
-                label="Código"
-                value={formData.codigo}
-                onChangeText={(text) => setFormData({ ...formData, codigo: text })}
-                maxLength={20}
+                label="Sigla"
+                value={formData.sigla}
+                onChangeText={(text) => setFormData({ ...formData, sigla: text })}
+                maxLength={10}
               />
               
               <MobileInput
@@ -342,7 +340,8 @@ const DisciplinasScreen = ({ navigation }) => {
       >
         {snackbarMessage}
       </Snackbar>
-    </View>
+      </View>
+    </MainLayout>
   );
 };
 

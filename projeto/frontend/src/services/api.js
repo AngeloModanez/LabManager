@@ -57,4 +57,12 @@ export const blocosService = {
   buscarPorId: (id) => api.get(`${API_ENDPOINTS.BLOCOS}/${id}`),
 };
 
+export const aulasService = {
+  listar: (params = {}) => api.get(API_ENDPOINTS.AULAS, { params }),
+  criar: (data) => api.post(API_ENDPOINTS.AULAS, data),
+  atualizar: (id, data) => api.put(`${API_ENDPOINTS.AULAS}/${id}`, data),
+  remover: (id) => api.delete(`${API_ENDPOINTS.AULAS}/${id}`),
+  buscarPorId: (id) => api.get(`${API_ENDPOINTS.AULAS}/${id}`),
+};
+
 export default api;

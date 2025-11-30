@@ -279,6 +279,7 @@ const InstituicoesPage = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={hideSnackbar}
+        sx={{ zIndex: 9999 }}
       >
         <Alert
           onClose={hideSnackbar}

@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
  * Schema para o modelo de Cursos
  * @typedef {Object} Curso
  * @property {string} nome - Nome do curso
- * @property {string} [codigo] - Código do curso
+ * @property {string} [sigla] - Sigla do curso
  * @property {ObjectId} instituicaoId - ID da instituição
  * @property {string[]} turnos - Turnos do curso (manhã, tarde, noite)
  * @property {boolean} [status] - Status ativo/inativo do curso
@@ -22,10 +22,10 @@ const cursoSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, 'Nome deve ter no máximo 100 caracteres']
   },
-  codigo: {
+  sigla: {
     type: String,
     trim: true,
-    maxlength: [20, 'Código deve ter no máximo 20 caracteres']
+    maxlength: [10, 'Sigla deve ter no máximo 10 caracteres']
   },
   instituicaoId: {
     type: mongoose.Schema.Types.ObjectId,

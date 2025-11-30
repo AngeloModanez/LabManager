@@ -13,4 +13,5 @@ export const API_ENDPOINTS = {
   LABORATORIOS: '/laboratorios',
   DISCIPLINAS: '/disciplinas',
   BLOCOS: '/blocos',
+  AULAS: '/aulas',
 };

@@ -20,7 +20,9 @@ import {
   MenuBook as MenuBookIcon,
   Computer as ComputerIcon,
   Schedule as ScheduleIcon,
+  Class as ClassIcon,
   Close as CloseIcon,
+  Monitor as MonitorIcon,
 } from '@mui/icons-material';
 import InstituicoesPage from '../../pages/Instituicoes/InstituicoesPage';
 import CursosPage from '../../pages/Cursos/CursosPage';
@@ -28,6 +30,7 @@ import ProfessoresPage from '../../pages/Professores/ProfessoresPage';
 import DisciplinasPage from '../../pages/Disciplinas/DisciplinasPage';
 import LaboratoriosPage from '../../pages/Laboratorios/LaboratoriosPage';
 import BlocosPage from '../../pages/Blocos/BlocosPage';
+import AulasPage from '../../pages/Aulas/AulasPage';
 
 const Menu = ({ open, onClose }) => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -40,6 +43,7 @@ const Menu = ({ open, onClose }) => {
   const disciplinasComponent = useMemo(() => <DisciplinasPage />, []);
   const laboratoriosComponent = useMemo(() => <LaboratoriosPage />, []);
   const blocosComponent = useMemo(() => <BlocosPage />, []);
+  const aulasComponent = useMemo(() => <AulasPage />, []);
 
   const handleOpenModal = (title, content) => {
     setModalTitle(title);
@@ -78,13 +82,18 @@ const Menu = ({ open, onClose }) => {
     handleOpenModal('Gerenciar Blocos de Aulas', blocosComponent);
   };
 
+  const handleAulasClick = () => {
+    handleOpenModal('Gerenciar Aulas', aulasComponent);
+  };
+
   return (
     <>
       <Drawer anchor="left" open={open} onClose={onClose}>
         <Box sx={{ width: 280 }}>
-          <Box sx={{ p: 2, backgroundColor: 'primary.main', color: 'white' }}>
+          <Box sx={{ p: 2, backgroundColor: 'primary.main', color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <MonitorIcon sx={{ color: 'white' }} />
             <Typography variant="h6">
-              Menu Principal
+              LabManager
             </Typography>
           </Box>
           <Divider />
@@ -135,6 +144,14 @@ const Menu = ({ open, onClose }) => {
                   <ScheduleIcon />
                 </ListItemIcon>
                 <ListItemText primary="Blocos de Aulas" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={handleAulasClick}>
+                <ListItemIcon>
+                  <ClassIcon />
+                </ListItemIcon>
+                <ListItemText primary="Aulas" />
               </ListItemButton>
             </ListItem>
           </List>

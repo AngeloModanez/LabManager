@@ -20,6 +20,7 @@ import MobileInput from '../components/common/MobileInput';
 import MobileSelectRemoto from '../components/common/MobileSelectRemoto';
 import MobileList from '../components/common/MobileList';
 import MobileConfirmDialog from '../components/common/MobileConfirmDialog';
+import MainLayout from '../components/Layout/MainLayout';
 
 const BlocosScreen = ({ navigation }) => {
   const [blocos, setBlocos] = useState([]);
@@ -267,11 +268,8 @@ const BlocosScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <Appbar.Header style={{ backgroundColor: '#1976d2' }}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} color="#fff" />
-        <Appbar.Content title="Blocos de Aulas" titleStyle={{ color: '#fff' }} />
-      </Appbar.Header>
+    <MainLayout title="Blocos de Aulas" navigation={navigation}>
+      <View style={{ flex: 1, backgroundColor: '#fff' }}>
 
       <View style={{ padding: 16, paddingBottom: 0 }}>
         <Searchbar
@@ -408,7 +406,8 @@ const BlocosScreen = ({ navigation }) => {
       >
         {snackbarMessage}
       </Snackbar>
-    </View>
+      </View>
+    </MainLayout>
   );
 };
 

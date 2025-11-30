@@ -147,6 +147,17 @@ const removerCurso = async (req, res, next) => {
       });
     }
 
+    // Verificar se há aulas vinculadas
+    const Aula = require('../models/Aula');
+    const aulasVinculadas = await Aula.countDocuments({ cursoId: req.params.id });
+    
+    if (aulasVinculadas > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível excluir curso com aulas vinculadas'
+      });
+    }
+
     const curso = await Curso.findByIdAndDelete(req.params.id);
 
     if (!curso) {

@@ -1,46 +1,41 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Provider as PaperProvider } from 'react-native-paper';
-import { BottomNavigation } from 'react-native-paper';
 
 import { theme } from './src/theme/theme';
+import { DrawerContent } from './src/components/Layout/MainLayout';
 import InstituicoesScreen from './src/components/Instituicoes/InstituicoesScreen';
 import CursosScreen from './src/screens/CursosScreen';
 import ProfessoresScreen from './src/screens/ProfessoresScreen';
 import DisciplinasScreen from './src/screens/DisciplinasScreen';
 import LaboratoriosScreen from './src/screens/LaboratoriosScreen';
 import BlocosScreen from './src/screens/BlocosScreen';
+import AulasScreen from './src/screens/AulasScreen';
+
+const Drawer = createDrawerNavigator();
 
 const MainNavigator = () => {
-  const [index, setIndex] = React.useState(0);
-  const [routes] = React.useState([
-    { key: 'instituicoes', title: 'Instituições', focusedIcon: 'school' },
-    { key: 'cursos', title: 'Cursos', focusedIcon: 'book-open-variant' },
-    { key: 'professores', title: 'Professores', focusedIcon: 'account-tie' },
-    { key: 'disciplinas', title: 'Disciplinas', focusedIcon: 'book-multiple' },
-    { key: 'laboratorios', title: 'Laboratórios', focusedIcon: 'flask' },
-    { key: 'blocos', title: 'Blocos', focusedIcon: 'clock-outline' },
-  ]);
-
-  const renderScene = BottomNavigation.SceneMap({
-    instituicoes: () => <InstituicoesScreen navigation={{ goBack: () => {} }} />,
-    cursos: () => <CursosScreen navigation={{ goBack: () => {} }} />,
-    professores: () => <ProfessoresScreen navigation={{ goBack: () => {} }} />,
-    disciplinas: () => <DisciplinasScreen navigation={{ goBack: () => {} }} />,
-    laboratorios: () => <LaboratoriosScreen navigation={{ goBack: () => {} }} />,
-    blocos: () => <BlocosScreen navigation={{ goBack: () => {} }} />,
-  });
-
   return (
-    <BottomNavigation
-      navigationState={{ index, routes }}
-      onIndexChange={setIndex}
-      renderScene={renderScene}
-      shifting={false}
-      sceneAnimationEnabled={false}
-      barStyle={{ backgroundColor: '#fff', elevation: 8 }}
-    />
+    <Drawer.Navigator
+      drawerContent={(props) => <DrawerContent {...props} />}
+      screenOptions={{
+        headerShown: false,
+        drawerStyle: {
+          width: 280,
+        },
+      }}
+      initialRouteName="Instituicoes"
+    >
+      <Drawer.Screen name="Instituicoes" component={InstituicoesScreen} />
+      <Drawer.Screen name="Cursos" component={CursosScreen} />
+      <Drawer.Screen name="Professores" component={ProfessoresScreen} />
+      <Drawer.Screen name="Disciplinas" component={DisciplinasScreen} />
+      <Drawer.Screen name="Laboratorios" component={LaboratoriosScreen} />
+      <Drawer.Screen name="Blocos" component={BlocosScreen} />
+      <Drawer.Screen name="Aulas" component={AulasScreen} />
+    </Drawer.Navigator>
   );
 };
 
