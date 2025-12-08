@@ -22,7 +22,8 @@ const SearchBar = ({
         ),
       }}
       sx={{ 
-        minWidth: 350,
+        minWidth: { xs: '100%', sm: 300 },
+        width: { xs: '100%', sm: 'auto' },
         '& .MuiOutlinedInput-root': {
           borderRadius: 3,
         }

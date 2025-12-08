@@ -183,7 +183,15 @@ const CursosPage = () => {
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ px: 0, mb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+      <Box sx={{ 
+        px: 0, 
+        mb: 1, 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        gap: 2, 
+        flexDirection: { xs: 'column', sm: 'row' } 
+      }}>
         <SearchBar
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
@@ -195,6 +203,7 @@ const CursosPage = () => {
           onClick={() => abrirModal()}
           variant="outlined"
           color="primary"
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
         >
           Novo Curso
         </Button>
