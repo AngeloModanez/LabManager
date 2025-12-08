@@ -6,6 +6,12 @@ import { DrawerContentScrollView } from '@react-navigation/drawer';
 const DrawerContent = ({ navigation, state }) => {
   const menuItems = [
     { 
+      key: 'horarios', 
+      title: 'Consulta de Horários', 
+      icon: 'calendar-month',
+      screen: 'Horarios'
+    },
+    { 
       key: 'instituicoes', 
       title: 'Instituições', 
       icon: 'school',

@@ -25,6 +25,14 @@ const Modal = ({
       onClose={onClose}
       maxWidth={maxWidth}
       fullWidth={fullWidth}
+      fullScreen={false}
+      sx={{
+        '& .MuiDialog-paper': {
+          margin: { xs: 2, sm: 3 },
+          maxHeight: { xs: 'calc(100% - 32px)', sm: 'calc(100% - 64px)' },
+          width: { xs: 'calc(100% - 32px)', sm: 'auto' }
+        }
+      }}
     >
       <DialogTitle>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

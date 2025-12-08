@@ -118,4 +118,11 @@ export const aulasService = {
   buscarPorId: (id) => api.get(`/aulas/${id}`),
 };
 
+/**
+ * Serviços para consulta de horários
+ */
+export const horariosService = {
+  consultar: (params = {}) => api.get('/horarios', { params }),
+};
+
 export default api;

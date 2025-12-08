@@ -65,4 +65,8 @@ export const aulasService = {
   buscarPorId: (id) => api.get(`${API_ENDPOINTS.AULAS}/${id}`),
 };
 
+export const horariosService = {
+  consultar: (params = {}) => api.get(API_ENDPOINTS.HORARIOS, { params }),
+};
+
 export default api;

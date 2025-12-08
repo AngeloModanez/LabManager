@@ -26,7 +26,7 @@ const Layout = ({ children, title = 'Sistema de Laboratórios - PM2025-2' }) => 
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="static" sx={{ backgroundColor: theme.palette.primary.main }}>
+      <AppBar position="fixed" sx={{ backgroundColor: theme.palette.primary.main, zIndex: theme.zIndex.drawer + 1 }}>
         <Toolbar>
           <IconButton
             edge="start"
@@ -44,6 +44,8 @@ const Layout = ({ children, title = 'Sistema de Laboratórios - PM2025-2' }) => 
       </AppBar>
 
       <Menu open={menuOpen} onClose={handleMenuClose} />
+
+      <Toolbar />
 
       <Container 
         component="main" 

@@ -13,6 +13,7 @@ import DisciplinasScreen from './src/screens/DisciplinasScreen';
 import LaboratoriosScreen from './src/screens/LaboratoriosScreen';
 import BlocosScreen from './src/screens/BlocosScreen';
 import AulasScreen from './src/screens/AulasScreen';
+import HorariosScreen from './src/screens/HorariosScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -26,8 +27,9 @@ const MainNavigator = () => {
           width: 280,
         },
       }}
-      initialRouteName="Instituicoes"
+      initialRouteName="Horarios"
     >
+      <Drawer.Screen name="Horarios" component={HorariosScreen} />
       <Drawer.Screen name="Instituicoes" component={InstituicoesScreen} />
       <Drawer.Screen name="Cursos" component={CursosScreen} />
       <Drawer.Screen name="Professores" component={ProfessoresScreen} />

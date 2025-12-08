@@ -14,4 +14,5 @@ export const API_ENDPOINTS = {
   DISCIPLINAS: '/disciplinas',
   BLOCOS: '/blocos',
   AULAS: '/aulas',
+  HORARIOS: '/horarios',
 };
