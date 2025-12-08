@@ -45,7 +45,7 @@ const HorariosScreen = ({ navigation }) => {
     setSnackbarVisible(true);
   };
 
-  const consultarHorarios = React.useCallback(async () => {
+  const consultarHorarios = async () => {
     setLoading(true);
     try {
       const params = {};
@@ -64,11 +64,11 @@ const HorariosScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  }, [filtros]);
+  };
 
   useEffect(() => {
     consultarHorarios();
-  }, [consultarHorarios]);
+  }, [filtros]);
 
   const limparFiltros = () => {
     setFiltros({
@@ -90,25 +90,24 @@ const HorariosScreen = ({ navigation }) => {
     }
 
     return (
-      <Card key={dia} style={styles.diaCard}>
-        <Card.Content>
-          <Title style={styles.diaTitle}>{dia}</Title>
+      <Card key={dia} style={styles.diaCard} elevation={2}>
+        <Card.Content style={styles.diaCardContent}>
+          <Text style={styles.diaTitle}>{dia}</Text>
           {aulasNoDia.map((aula, index) => (
-            <View key={index} style={styles.aulaItem}>
-              <Chip 
-                mode="outlined" 
-                style={styles.horarioChip}
-                textStyle={styles.horarioChipText}
-              >
-                {aula.blocoInicio} - {aula.blocoFim}
-              </Chip>
+            <View key={index} style={styles.aulaCard}>
+              <View style={styles.horarioContainer}>
+                <Text style={styles.horarioText}>{aula.blocoInicio}</Text>
+                <Text style={styles.horarioSeparador}>-</Text>
+                <Text style={styles.horarioText}>{aula.blocoFim}</Text>
+              </View>
               <View style={styles.aulaInfo}>
                 <Text style={styles.disciplinaText}>{aula.disciplina}</Text>
-                <Text style={styles.infoText}>Prof: {aula.professor}</Text>
-                <Text style={styles.infoText}>Curso: {aula.cursoSigla || aula.curso}</Text>
-                <Text style={styles.infoText}>Lab: {aula.laboratorio}</Text>
+                <Text style={styles.infoText}>{aula.professor}</Text>
+                <View style={styles.detalhesRow}>
+                  <Text style={styles.cursoText}>{aula.cursoSigla || aula.curso}</Text>
+                  <Text style={styles.labText}>{aula.laboratorio}</Text>
+                </View>
               </View>
-              {index < aulasNoDia.length - 1 && <Divider style={styles.divider} />}
             </View>
           ))}
         </Card.Content>
@@ -126,7 +125,9 @@ const HorariosScreen = ({ navigation }) => {
 
     return (
       <View key={turno} style={styles.turnoContainer}>
-        <Title style={styles.turnoTitle}>{turno}</Title>
+        <View style={styles.turnoHeader}>
+          <Text style={styles.turnoTitle}>{turno}</Text>
+        </View>
         {diasSemana.map(dia => renderDia(dia, turno))}
       </View>
     );
@@ -234,18 +235,20 @@ const HorariosScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f0f4f8',
   },
   header: {
     backgroundColor: '#1976d2',
+    elevation: 4,
   },
   content: {
     flex: 1,
     padding: 16,
   },
   filtrosCard: {
-    marginBottom: 16,
-    elevation: 2,
+    marginBottom: 20,
+    elevation: 3,
+    borderRadius: 12,
   },
   buttonContainer: {
     marginTop: 16,
@@ -256,54 +259,106 @@ const styles = StyleSheet.create({
   turnoContainer: {
     marginBottom: 24,
   },
-  turnoTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1976d2',
+  turnoHeader: {
+    backgroundColor: '#1976d2',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     marginBottom: 12,
+    elevation: 2,
+  },
+  turnoTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   diaCard: {
     marginBottom: 12,
-    elevation: 2,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+  },
+  diaCardContent: {
+    padding: 12,
   },
   diaTitle: {
     fontSize: 16,
     fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#1976d2',
+    borderBottomWidth: 2,
+    borderBottomColor: '#e3f2fd',
+    paddingBottom: 8,
+  },
+  aulaCard: {
+    flexDirection: 'row',
+    backgroundColor: '#f8fbff',
+    borderRadius: 8,
+    padding: 12,
     marginBottom: 8,
-    color: '#333',
+    borderLeftWidth: 4,
+    borderLeftColor: '#1976d2',
   },
-  aulaItem: {
-    marginVertical: 4,
+  horarioContainer: {
+    backgroundColor: '#1976d2',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    minWidth: 70,
   },
-  horarioChip: {
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-    backgroundColor: '#e3f2fd',
-  },
-  horarioChipText: {
-    fontSize: 12,
+  horarioText: {
+    color: '#fff',
+    fontSize: 13,
     fontWeight: 'bold',
   },
+  horarioSeparador: {
+    color: '#fff',
+    fontSize: 10,
+    marginVertical: 2,
+  },
   aulaInfo: {
-    paddingLeft: 8,
+    flex: 1,
+    justifyContent: 'center',
   },
   disciplinaText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#1976d2',
     marginBottom: 4,
   },
   infoText: {
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 4,
+  },
+  detalhesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  cursoText: {
     fontSize: 12,
     color: '#666',
-    marginBottom: 2,
+    backgroundColor: '#e3f2fd',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    fontWeight: '600',
   },
-  divider: {
-    marginVertical: 8,
+  labText: {
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
   },
   emptyCard: {
     marginTop: 16,
     elevation: 2,
+    borderRadius: 12,
   },
   emptyText: {
     textAlign: 'center',
